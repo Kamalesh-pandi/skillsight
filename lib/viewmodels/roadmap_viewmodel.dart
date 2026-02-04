@@ -11,6 +11,7 @@ class RoadmapViewModel extends ChangeNotifier {
   RoadmapModel? _currentRoadmap;
   bool _isLoading = false;
   String? _errorMessage;
+  final Map<String, Future<List<Map<String, dynamic>>>> _quizFetches = {};
 
   RoadmapModel? get currentRoadmap => _currentRoadmap;
   bool get isLoading => _isLoading;
@@ -101,15 +102,16 @@ class RoadmapViewModel extends ChangeNotifier {
 
       // Streak Logic
       if (value && currentUser != null && onUserUpdate != null) {
-        await _updateStreak(currentUser, onUserUpdate);
+        await _updateStreak(
+            currentUser, onUserUpdate, 10); // Default 10 for manual toggle
       }
 
       notifyListeners();
     }
   }
 
-  Future<void> _updateStreak(
-      UserModel user, Function(UserModel) onUserUpdate) async {
+  Future<void> _updateStreak(UserModel user, Function(UserModel) onUserUpdate,
+      int earnedPoints) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final lastUpdate = user.lastStreakUpdate != null
@@ -118,7 +120,7 @@ class RoadmapViewModel extends ChangeNotifier {
         : null;
 
     int newStreak = user.currentStreak;
-    int newPoints = user.points + 10; // 10 points per topic
+    int newPoints = user.points + earnedPoints;
 
     if (lastUpdate == null) {
       newStreak = 1;
@@ -156,7 +158,9 @@ class RoadmapViewModel extends ChangeNotifier {
       final resources = await _aiService.fetchTaskResources(
           task.title, _currentRoadmap!.careerGoal);
 
-      _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] = task.copyWith(
+      // Re-fetch task to avoid race conditions with other background updates
+      final latestTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+      _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] = latestTask.copyWith(
         bestResources: resources['bestResources'],
         youtubeQuery: resources['youtubeQuery'],
       );
@@ -199,48 +203,102 @@ class RoadmapViewModel extends ChangeNotifier {
   Future<List<Map<String, dynamic>>> fetchQuizForTask(
       int weekIndex, int taskIndex) async {
     if (_currentRoadmap == null) return [];
+    if (weekIndex >= _currentRoadmap!.weeks.length) return [];
+    if (taskIndex >= _currentRoadmap!.weeks[weekIndex].tasks.length) return [];
 
     final task = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
-
-    // If already has questions AND WE ARE NOT SWITCHING MODES (simplification: simple cache check)
-    // For now, if questions exist, return them.
-    // Ideally we should clear questions when toggling mode.
-    // (Handled in toggleInterviewMode above technically, but list might be empty not null)
-
-    // Logic: If questions exist, return them.
-    // If not, fetch. The toggleInterviewMode clears the list.
     if (task.quizQuestions != null && task.quizQuestions!.isNotEmpty) {
       return task.quizQuestions!;
     }
 
+    final fetchKey = '${_currentRoadmap!.id}-$weekIndex-$taskIndex';
+    if (_quizFetches.containsKey(fetchKey)) {
+      return _quizFetches[fetchKey]!;
+    }
+
+    final fetchFuture = _aiService.generateQuiz(
+        task.title, _currentRoadmap!.careerGoal,
+        isInterviewMode: _isInterviewMode);
+
+    _quizFetches[fetchKey] = fetchFuture;
+
     try {
-      final questions = await _aiService.generateQuiz(
-          task.title, _currentRoadmap!.careerGoal,
-          isInterviewMode: _isInterviewMode);
-
-      _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] = task.copyWith(
-        quizQuestions: questions,
-      );
-
-      await _dbService.saveRoadmap(_currentRoadmap!);
-      notifyListeners();
+      final questions = await fetchFuture;
+      if (questions.isNotEmpty) {
+        // Re-fetch latest task to ensure we don't overwrite other field updates
+        final latestTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+        _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] =
+            latestTask.copyWith(
+          quizQuestions: questions,
+        );
+        await _dbService.saveRoadmap(_currentRoadmap!);
+        notifyListeners();
+      }
       return questions;
     } catch (e) {
       print('Error fetching quiz: $e');
       return [];
+    } finally {
+      _quizFetches.remove(fetchKey);
     }
   }
 
-  Future<void> saveQuizScore(int weekIndex, int taskIndex, int score) async {
+  Future<void> saveQuizScore(
+    int weekIndex,
+    int taskIndex,
+    int score,
+    bool passed, {
+    UserModel? currentUser,
+    Function(UserModel)? onUserUpdate,
+  }) async {
+    if (_currentRoadmap == null) return;
+    if (weekIndex >= _currentRoadmap!.weeks.length) return;
+    if (taskIndex >= _currentRoadmap!.weeks[weekIndex].tasks.length) return;
+
+    final oldTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+    final wasAlreadyCompleted = oldTask.isCompleted;
+
+    // 1. Update Roadmap Locally
+    _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] = oldTask.copyWith(
+      quizScore: score,
+      lastTestedAt: DateTime.now(),
+      isCompleted: wasAlreadyCompleted || passed,
+    );
+
+    // 2. Persist Roadmap
+    await _dbService.saveRoadmap(_currentRoadmap!);
+
+    // 3. Update User Progress (Points & Streak) if newly passed
+    if (passed &&
+        !wasAlreadyCompleted &&
+        currentUser != null &&
+        onUserUpdate != null) {
+      await _updateStreak(currentUser, onUserUpdate, score);
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> fetchInterviewQuestions(int weekIndex, int taskIndex) async {
     if (_currentRoadmap == null) return;
 
     final task = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
-    _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] = task.copyWith(
-      quizScore: score,
-      lastTestedAt: DateTime.now(), // Update last tested time
-    );
+    if (task.interviewQuestions != null &&
+        task.interviewQuestions!.isNotEmpty) {
+      return;
+    }
 
-    await _dbService.saveRoadmap(_currentRoadmap!);
-    notifyListeners();
+    try {
+      final questions = await _aiService.generateInterviewQuestions(
+          task.title, _currentRoadmap!.careerGoal);
+
+      _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] =
+          task.copyWith(interviewQuestions: questions);
+
+      await _dbService.saveRoadmap(_currentRoadmap!);
+      notifyListeners();
+    } catch (e) {
+      print('DEBUG: RoadmapVM Interview Error: $e');
+    }
   }
 }

@@ -76,8 +76,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             padding: const EdgeInsets.all(16),
             itemCount: _users!.length,
             itemBuilder: (context, index) {
+              // Calculate rank with tie-handling
+              int currentRank = 1;
+              for (int i = 0; i < index; i++) {
+                if (_users![i].points > _users![index].points) {
+                  currentRank++;
+                }
+              }
+
               final user = _users![index];
-              final rank = index + 1;
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -101,12 +108,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   leading: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildRankBadge(rank),
+                      _buildRankBadge(currentRank),
                       const SizedBox(width: 12),
                       Container(
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: rank <= 3
+                          color: currentRank <= 3
                               ? Colors.amber.withOpacity(0.2)
                               : Colors.transparent,
                           shape: BoxShape.circle,
@@ -179,6 +186,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Widget _buildTopThree() {
+    // Calculate ranks for potential podium items with tie-handling
+    int rank1 = 1;
+    int rank2 = 1;
+    for (int i = 0; i < 1; i++) {
+      if (_users![0].points > _users![1].points) rank2++;
+    }
+    int rank3 = 1;
+    for (int i = 0; i < 2; i++) {
+      if (_users![i].points > _users![2].points) rank3++;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       margin: const EdgeInsets.only(bottom: 8),
@@ -193,9 +211,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _buildPodiumItem(_users![1], 2, 80), // Silver
-          _buildPodiumItem(_users![0], 1, 100), // Gold
-          _buildPodiumItem(_users![2], 3, 80), // Bronze
+          _buildPodiumItem(_users![1], rank2, 80), // Position 2
+          _buildPodiumItem(_users![0], rank1, 100), // Position 1
+          _buildPodiumItem(_users![2], rank3, 80), // Position 3
         ],
       ),
     );

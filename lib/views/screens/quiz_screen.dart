@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/roadmap_viewmodel.dart';
 import '../../constants/app_theme.dart';
+import '../../viewmodels/main_viewmodel.dart';
 import '../widgets/gradient_app_bar.dart';
 import '../widgets/gradient_button.dart';
 
 class QuizScreen extends StatefulWidget {
-  final int weekIndex;
-  final int taskIndex;
+  final int? weekIndex;
+  final int? taskIndex;
   final String topic;
   final List<Map<String, dynamic>> questions;
 
   const QuizScreen({
     super.key,
-    required this.weekIndex,
-    required this.taskIndex,
+    this.weekIndex,
+    this.taskIndex,
     required this.topic,
     required this.questions,
   });
@@ -54,8 +55,18 @@ class _QuizScreenState extends State<QuizScreen> {
         setState(() {
           _isQuizFinished = true;
         });
-        // Save score to ViewModel
-        roadmapVM.saveQuizScore(widget.weekIndex, widget.taskIndex, _score);
+        final passed = _score >= 5;
+        final mainVM = Provider.of<MainViewModel>(context, listen: false);
+        if (widget.weekIndex != null && widget.taskIndex != null) {
+          roadmapVM.saveQuizScore(
+            widget.weekIndex!,
+            widget.taskIndex!,
+            _score,
+            passed,
+            currentUser: mainVM.currentUser,
+            onUserUpdate: mainVM.updateUser,
+          );
+        }
       }
     });
   }
@@ -105,9 +116,9 @@ class _QuizScreenState extends State<QuizScreen> {
                     fontSize: 20, fontWeight: FontWeight.bold, height: 1.4),
               ),
               const SizedBox(height: 32),
-              ...List.generate(options.length, (index) {
+              ...List.generate((options as List).length, (index) {
                 return _buildOptionCard(
-                    index, options[index], question['correctIndex']);
+                    index, options[index], question['correctIndex'] ?? 0);
               }),
             ],
           ),

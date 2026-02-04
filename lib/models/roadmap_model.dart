@@ -4,6 +4,7 @@ class RoadmapTask {
   final String? bestResources;
   final String? youtubeQuery;
   final List<Map<String, dynamic>>? quizQuestions;
+  final List<Map<String, dynamic>>? interviewQuestions;
   final int? quizScore;
   final DateTime? lastTestedAt;
 
@@ -13,6 +14,7 @@ class RoadmapTask {
     this.bestResources,
     this.youtubeQuery,
     this.quizQuestions,
+    this.interviewQuestions,
     this.quizScore,
     this.lastTestedAt,
   });
@@ -24,6 +26,7 @@ class RoadmapTask {
       'bestResources': bestResources,
       'youtubeQuery': youtubeQuery,
       'quizQuestions': quizQuestions,
+      'interviewQuestions': interviewQuestions,
       'quizScore': quizScore,
       'lastTestedAt': lastTestedAt?.toIso8601String(),
     };
@@ -38,6 +41,9 @@ class RoadmapTask {
       quizQuestions: map['quizQuestions'] != null
           ? List<Map<String, dynamic>>.from(map['quizQuestions'])
           : null,
+      interviewQuestions: map['interviewQuestions'] != null
+          ? List<Map<String, dynamic>>.from(map['interviewQuestions'])
+          : null,
       quizScore: map['quizScore'],
       lastTestedAt: map['lastTestedAt'] != null
           ? DateTime.parse(map['lastTestedAt'])
@@ -51,6 +57,7 @@ class RoadmapTask {
     String? bestResources,
     String? youtubeQuery,
     List<Map<String, dynamic>>? quizQuestions,
+    List<Map<String, dynamic>>? interviewQuestions,
     int? quizScore,
     DateTime? lastTestedAt,
   }) {
@@ -60,6 +67,7 @@ class RoadmapTask {
       bestResources: bestResources ?? this.bestResources,
       youtubeQuery: youtubeQuery ?? this.youtubeQuery,
       quizQuestions: quizQuestions ?? this.quizQuestions,
+      interviewQuestions: interviewQuestions ?? this.interviewQuestions,
       quizScore: quizScore ?? this.quizScore,
       lastTestedAt: lastTestedAt ?? this.lastTestedAt,
     );

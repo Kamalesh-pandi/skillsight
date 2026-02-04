@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../viewmodels/roadmap_viewmodel.dart';
 import '../../viewmodels/main_viewmodel.dart';
 import '../../models/roadmap_model.dart';
@@ -8,7 +8,9 @@ import '../../constants/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/gradient_app_bar.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/webview_screen.dart';
 import 'quiz_screen.dart';
+import 'interview_prep_screen.dart';
 
 class RoadmapScreen extends StatefulWidget {
   const RoadmapScreen({super.key});
@@ -463,32 +465,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                               child: Row(
                                 children: [
                                   GestureDetector(
-                                    onTap: () async {
-                                      if (task.isCompleted) {
-                                        return;
-                                      }
-
-                                      // If not completed, trigger quiz first
-                                      if (!mounted) return;
-
-                                      if (task.quizScore != null &&
-                                          task.quizScore! >= 5) {
-                                        final mainVM =
-                                            Provider.of<MainViewModel>(context,
-                                                listen: false);
-                                        await vm.toggleTaskCompletion(
-                                            weekIndex,
-                                            taskIndex,
-                                            true,
-                                            mainVM.currentUser,
-                                            mainVM.updateUser);
-                                      } else {
-                                        if (mounted) {
-                                          _startQuiz(
-                                              context, weekIndex, taskIndex);
-                                        }
-                                      }
-                                    },
+                                    onTap: () => _startQuiz(
+                                        context, weekIndex, taskIndex),
                                     child: Container(
                                       width: 24,
                                       height: 24,
@@ -615,36 +593,50 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
 
     mainVM.updateLastLearningTime(); // Track activity for notification
 
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.primary,
+    List<Map<String, dynamic>> questions = task.quizQuestions ?? [];
+
+    if (questions.isEmpty) {
+      // Show loading only if not already fetched
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
                   ),
-                ),
-                SizedBox(height: 16),
-                Text('Preparing your skill quiz...'),
-              ],
+                  SizedBox(height: 16),
+                  Text('Preparing your skill quiz...'),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    final questions = await roadmapVM.fetchQuizForTask(weekIndex, taskIndex);
-    if (!context.mounted) return;
-    Navigator.pop(context); // Close loading
+      try {
+        questions = await roadmapVM.fetchQuizForTask(weekIndex, taskIndex);
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load quiz: ${e.toString()}')),
+        );
+      } finally {
+        if (context.mounted) {
+          Navigator.pop(context); // Always close loading
+        }
+      }
+    }
     if (questions.isNotEmpty) {
-      final bool? passed = await Navigator.push<bool>(
+      await Navigator.push<bool>(
         context,
         MaterialPageRoute(
           builder: (_) => QuizScreen(
@@ -656,38 +648,39 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         ),
       );
 
-      // Only complete if passed
-      if (passed == true) {
-        if (!context.mounted) return;
-        final mainVM = Provider.of<MainViewModel>(context, listen: false);
-        await roadmapVM.toggleTaskCompletion(
-            weekIndex, taskIndex, true, mainVM.currentUser, mainVM.updateUser);
-      }
+      // Quiz completion and rewards are now handled consolidated in QuizScreen
+      // via RoadmapViewModel.saveQuizScore
     }
   }
 
   void _showResourceSheet(BuildContext context, int weekIndex, int taskIndex) {
+    // Capture the parent context (RoadmapScreen) to use for navigation/dialogs
+    // after the sheet is popped.
+    final parentContext = context;
+
     final roadmapVM = Provider.of<RoadmapViewModel>(context, listen: false);
     final mainVM = Provider.of<MainViewModel>(context, listen: false);
 
     // Trigger fetch
     roadmapVM.fetchResourcesForTask(weekIndex, taskIndex);
+    roadmapVM.fetchQuizForTask(
+        weekIndex, taskIndex); // Pre-fetch quiz in background
     mainVM.updateLastLearningTime(); // Track activity for notification
 
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (sheetContext) {
         return Consumer<RoadmapViewModel>(
-          builder: (context, vm, child) {
+          builder: (consumerContext, vm, child) {
             final task = vm.currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
             final isLoading = task.bestResources == null;
 
             return Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(consumerContext).scaffoldBackgroundColor,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(32),
                   topRight: Radius.circular(32),
@@ -718,28 +711,14 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color:
-                                  Theme.of(context).textTheme.titleLarge?.color,
+                              color: Theme.of(consumerContext)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.color,
                             ),
                           ),
                         ),
-                        if (task.quizScore != null)
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.pop(context); // Close sheet
-                              _startQuiz(context, weekIndex, taskIndex);
-                            },
-                            icon: const Icon(Icons.refresh, size: 16),
-                            label: const Text('Retake Quiz'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          )
-                        else if (task.isCompleted)
+                        if (task.isCompleted)
                           const Icon(Icons.check_circle,
                               color: AppColors.success)
                       ],
@@ -770,49 +749,119 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardTheme.color,
+                          color: Theme.of(consumerContext).cardTheme.color,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                              color: Theme.of(context)
+                              color: Theme.of(consumerContext)
                                   .dividerColor
                                   .withOpacity(0.1)),
                         ),
-                        child: SelectableText(
-                          task.bestResources!,
-                          style: const TextStyle(fontSize: 14, height: 1.5),
+                        child: MarkdownBody(
+                          data: task.bestResources!,
+                          onTapLink: (text, href, title) {
+                            if (href != null) {
+                              _launchURL(href);
+                            }
+                          },
+                          styleSheet: MarkdownStyleSheet(
+                            p: const TextStyle(fontSize: 14, height: 1.5),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
                       if (task.youtubeQuery != null &&
                           task.youtubeQuery!.isNotEmpty)
-                        ElevatedButton.icon(
+                        GradientButton(
+                          text: 'Search Tutorials on YouTube',
                           onPressed: () {
                             final query =
                                 Uri.encodeComponent(task.youtubeQuery!);
                             _launchURL(
                                 'https://www.youtube.com/results?search_query=$query');
                           },
-                          icon: const Icon(Icons.play_circle_fill,
-                              color: Colors.white),
-                          label: const Text('Search Tutorials on YouTube'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            minimumSize: const Size(double.infinity, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                          icon: Icons.play_circle_fill,
                         ),
                       const SizedBox(height: 16),
-                      if (task.quizScore == null && !task.isCompleted)
-                        GradientButton(
-                          text: 'Take Skill Quiz',
-                          onPressed: () {
-                            Navigator.pop(context); // Close sheet
-                            _startQuiz(context, weekIndex, taskIndex);
-                          },
-                          icon: Icons.quiz_outlined,
-                        ),
+                      GradientButton(
+                        text: task.isCompleted || task.quizScore != null
+                            ? 'Retake Skill Quiz'
+                            : 'Take Skill Quiz',
+                        onPressed: () {
+                          Navigator.pop(sheetContext); // Close sheet
+                          _startQuiz(parentContext, weekIndex,
+                              taskIndex); // Use parent context
+                        },
+                        icon: Icons.quiz_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                      GradientButton(
+                        text: 'Interview Preparation',
+                        onPressed: () async {
+                          Navigator.pop(sheetContext); // Close sheet
+
+                          // Show loading dialog using PARENT context
+                          if (!parentContext.mounted) return;
+
+                          showDialog(
+                            context: parentContext,
+                            barrierDismissible: false,
+                            builder: (dialogContext) => const Center(
+                              child: Card(
+                                child: Padding(
+                                  padding: EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          AppColors.primary,
+                                        ),
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text('Generating interview questions...'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+
+                          try {
+                            await roadmapVM
+                                .fetchInterviewQuestions(weekIndex, taskIndex)
+                                .timeout(const Duration(seconds: 60));
+
+                            // Check parentContext, NOT the sheet or callback context
+                            if (parentContext.mounted) {
+                              Navigator.pop(parentContext); // Close loading
+
+                              final updatedTask = roadmapVM.currentRoadmap!
+                                  .weeks[weekIndex].tasks[taskIndex];
+                              Navigator.push(
+                                parentContext,
+                                MaterialPageRoute(
+                                  builder: (_) => InterviewPrepScreen(
+                                    task: updatedTask,
+                                    weekIndex: weekIndex,
+                                    taskIndex: taskIndex,
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (parentContext.mounted) {
+                              Navigator.pop(parentContext); // Close loading
+                              ScaffoldMessenger.of(parentContext).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Failed to load questions: ${e.toString()}')),
+                              );
+                            }
+                          }
+                        },
+                        icon: Icons.work_outline,
+                      ),
                       const SizedBox(height: 16),
                     ],
                   ],
@@ -826,26 +875,14 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   }
 
   Future<void> _launchURL(String urlString) async {
-    try {
-      final Uri url = Uri.parse(urlString.trim());
-      // On Android 11+, canLaunchUrl can be unreliable.
-      // It's often better to try launching and handle the error.
-      final bool launched = await launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No app found to open this link: $urlString')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening link: $e')),
-        );
-      }
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WebViewScreen(
+          url: urlString,
+          title: 'Resource',
+        ),
+      ),
+    );
   }
 }

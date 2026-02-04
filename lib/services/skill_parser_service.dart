@@ -39,6 +39,7 @@ class SkillParserService {
     return {
       'skills': skills,
       'suggestedGoal': suggestedGoal,
+      'readiness': aiData['readiness'] ?? [],
     };
   }
 

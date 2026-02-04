@@ -22,7 +22,12 @@ class AIService {
     Return response in JSON format like this: 
     {
       "skills": [{"name": "Flutter", "level": "Beginner"}, ...],
-      "suggestedGoal": "Flutter Developer"
+      "suggestedGoal": "Flutter Developer",
+      "readiness": [
+        {"company": "Zoho", "score": 75},
+        {"company": "Google", "score": 60},
+        ... (exactly 15 most relevant companies)
+      ]
     }
 
     Resume Text:
@@ -38,6 +43,7 @@ class AIService {
       return {
         'skills': List<Map<String, dynamic>>.from(data['skills']),
         'suggestedGoal': data['suggestedGoal']?.toString() ?? '',
+        'readiness': List<Map<String, dynamic>>.from(data['readiness'] ?? []),
       };
     } catch (e) {
       final errorStr = e.toString();
@@ -154,22 +160,74 @@ class AIService {
 
       $questionTypePrompt
 
+      Constraints for speed:
+      1. Keep questions and options concise (max 15 words each).
+      2. Provide very brief explanations (max 20 words).
+      3. Focus on accuracy over verbosity.
+
       Each question must have:
       1. A clear question string.
       2. Exactly 4 options.
       3. The correct answer index (0-3).
       4. A brief explanation of the correct answer.
 
-      Return ONLY a JSON object with a key "quiz" containing a list of questions.
+      Return ONLY a JSON object with a key "quiz" containing a list of 10 questions.
 
       JSON Structure:
       {
-        "quiz": [
+        "quiz": [{
+          "question": "string",
+          "options": ["string", "string", "string", "string"],
+          "correctIndex": number,
+          "explanation": "string"
+        }]
+      }
+''';
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from Gemini');
+
+      String textContent = text.trim();
+
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+        return List<Map<String, dynamic>>.from(data['quiz'] ?? []);
+      }
+      return [];
+    } catch (e) {
+      print('DEBUG: Gemini Quiz Error: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> generateInterviewQuestions(
+      String topic, String careerGoal) async {
+    final prompt = '''
+      You are an expert technical interviewer at a top-tier tech company.
+      Target Career Goal: $careerGoal
+      Topic to Cover: $topic
+
+      Generate the 12 MOST ASKED interview questions for this topic and career goal.
+      Include a mix of theory, practical application, and scenario-based questions.
+
+      Requirements:
+      1. Provide exactly 12 questions.
+      2. For each question, provide a clear, professional answer.
+      3. Focus on quality and industry standards.
+      4. Return the data ONLY as a JSON object with a key "interview_questions".
+
+      JSON Structure:
+      {
+        "interview_questions": [
           {
-            "question": "What is...?",
-            "options": ["Option A", "Option B", "Option C", "Option D"],
-            "correctIndex": 0,
-            "explanation": "Explanation here..."
+            "question": "string",
+            "answer": "string"
           },
           ...
         ]
@@ -181,19 +239,19 @@ class AIService {
       final text = response.text;
       if (text == null) throw Exception('Empty response from Gemini');
 
-      // Clean potential markdown wrapper
-      String cleanedText = text.trim();
-      if (cleanedText.startsWith('```json')) {
-        cleanedText = cleanedText.substring(7);
-      }
-      if (cleanedText.endsWith('```')) {
-        cleanedText = cleanedText.substring(0, cleanedText.length - 3);
-      }
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
 
-      final data = jsonDecode(cleanedText.trim());
-      return List<Map<String, dynamic>>.from(data['quiz'] ?? []);
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+        return List<Map<String, dynamic>>.from(
+            data['interview_questions'] ?? []);
+      }
+      return [];
     } catch (e) {
-      print('DEBUG: Gemini Quiz Error: $e');
+      print('DEBUG: Gemini Interview Questions Error: $e');
       return [];
     }
   }

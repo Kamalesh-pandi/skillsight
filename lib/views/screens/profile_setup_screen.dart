@@ -55,16 +55,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final mainVM = Provider.of<MainViewModel>(context, listen: false);
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final updatedUser = UserModel(
-        uid: user.uid,
-        email: user.email ?? '',
-        displayName: user.displayName ?? 'Learner',
-        photoUrl: user.photoURL,
-        education: _educationController.text,
-        department: _departmentController.text,
-        careerGoal: _selectedGoal,
-        manualSkills: _manualSkills,
-      );
+      UserModel updatedUser;
+      if (mainVM.currentUser != null) {
+        updatedUser = mainVM.currentUser!.copyWith(
+          education: _educationController.text,
+          department: _departmentController.text,
+          careerGoal: _selectedGoal,
+          manualSkills: _manualSkills,
+        );
+      } else {
+        updatedUser = UserModel(
+          uid: user.uid,
+          email: user.email ?? '',
+          displayName: user.displayName ?? 'Learner',
+          photoUrl: user.photoURL,
+          education: _educationController.text,
+          department: _departmentController.text,
+          careerGoal: _selectedGoal,
+          manualSkills: _manualSkills,
+        );
+      }
       try {
         await mainVM.saveUserProfile(updatedUser);
         if (mounted) {
@@ -471,21 +481,16 @@ class _SearchablePickerState extends State<_SearchablePicker> {
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            widget.onSelected(
-                                PickerOption(label: _searchController.text));
-                            Navigator.pop(context);
-                          },
-                          icon: const Icon(Icons.add_rounded),
-                          label:
-                              Text('Add "${_searchController.text}" manually'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: GradientButton(
+                            text: 'Add "${_searchController.text}" manually',
+                            onPressed: () {
+                              widget.onSelected(
+                                  PickerOption(label: _searchController.text));
+                              Navigator.pop(context);
+                            },
+                            icon: Icons.add_rounded,
                           ),
                         ),
                       ],

@@ -13,6 +13,7 @@ import 'login_screen.dart';
 import 'mentor_chat_screen.dart'; // Added Chat Screen
 import '../widgets/gradient_app_bar.dart';
 import 'leaderboard_screen.dart';
+import 'aptitude_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -253,6 +254,17 @@ class HomeScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const RoadmapScreen())),
+                  ),
+                  _buildModernActionCard(
+                    context,
+                    title: 'Aptitude Course',
+                    subtitle: 'Master Quant, Verbal & Logical Reasoning',
+                    icon: Icons.calculate_outlined,
+                    color: Colors.indigo,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const AptitudeScreen())),
                   ),
                   _buildModernActionCard(
                     context,

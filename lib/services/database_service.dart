@@ -90,10 +90,9 @@ class DatabaseService {
       final doc = await docRef.get();
       if (doc.exists) {
         final roadmap = RoadmapModel.fromMap(doc.data()!);
-        roadmap.weeks[weekIndex].tasks[taskIndex] = RoadmapTask(
-          title: roadmap.weeks[weekIndex].tasks[taskIndex].title,
-          isCompleted: isCompleted,
-        );
+        roadmap.weeks[weekIndex].tasks[taskIndex] = roadmap
+            .weeks[weekIndex].tasks[taskIndex]
+            .copyWith(isCompleted: isCompleted);
         await docRef.update(roadmap.toMap());
       }
     }, 'updateRoadmapTask');

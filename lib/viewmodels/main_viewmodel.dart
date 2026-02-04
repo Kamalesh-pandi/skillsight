@@ -1188,16 +1188,7 @@ class MainViewModel extends ChangeNotifier {
 
   void selectCareerGoal(String goal) {
     if (_currentUser != null) {
-      final updatedUser = UserModel(
-        uid: _currentUser!.uid,
-        email: _currentUser!.email,
-        displayName: _currentUser!.displayName,
-        photoUrl: _currentUser!.photoUrl,
-        education: _currentUser!.education,
-        department: _currentUser!.department,
-        careerGoal: goal,
-        manualSkills: _currentUser!.manualSkills,
-      );
+      final updatedUser = _currentUser!.copyWith(careerGoal: goal);
       saveUserProfile(updatedUser);
     }
   }

@@ -14,12 +14,14 @@ class SkillViewModel extends ChangeNotifier {
   List<SkillModel> _extractedSkills = [];
   String? _suggestedGoal;
   bool _isProcessing = false;
+  List<Map<String, dynamic>> _companyReadiness = [];
   double _readinessScore = 0.0;
   String? _errorMessage;
 
   List<SkillModel> get extractedSkills => _extractedSkills;
   String? get suggestedGoal => _suggestedGoal;
   bool get isProcessing => _isProcessing;
+  List<Map<String, dynamic>> get companyReadiness => _companyReadiness;
   double get readinessScore => _readinessScore;
   String? get errorMessage => _errorMessage;
 
@@ -40,6 +42,8 @@ class SkillViewModel extends ChangeNotifier {
       final result = await _parserService.parseSkills(text);
       _extractedSkills = result['skills'] as List<SkillModel>;
       _suggestedGoal = result['suggestedGoal'] as String?;
+      _companyReadiness =
+          List<Map<String, dynamic>>.from(result['readiness'] ?? []);
 
       _isProcessing = false;
       notifyListeners();
