@@ -1,0 +1,280 @@
+﻿flutter : Building 
+flutter tool... 
+At line:1 char:1
++ flutter analyze > 
+analysis_output.txt 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Buildin   
+ g flutter tool..    
+. :String) [], R    
+emoteException
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (9 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (8 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (7 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (6 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (5 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (4 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (3 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (2 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Running pub 
+upgrade... 
+Error on line 13, 
+column 3 of 
+pubspec.yaml: 
+Expected ':'.
+   Γò╖
+13 Γöé   # https://gi
+thub.com/flutter/flut
+ter/wiki/Updating-dep
+endencies-in-Flutter
+   Γöé   ^
+   Γò╡
+Error (65): Unable 
+to 'pub upgrade' 
+flutter tool. 
+Retrying in five 
+seconds... (1 tries 
+left) 
+
+Waiting for 5 seconds, press CTRL+C to quit ...43210
+Error: 'pub upgrade' 
+still failing after 
+10 tries. 
+No known version for 
+the artifact name 
+"usbmuxd". Flutter 
+can continue, but 
+the artifact may be 
+re-downloaded on 
+subsequent 
+invocations until 
+the problem is 
+resolved.
+Analyzing skillsight...                                         
+
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\constants\app_theme.dart:53:18 - argument_type_not_assignable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\constants\app_theme.dart:128:18 - argument_type_not_assignable
+   info - Don't invoke 'print' in production code - lib\services\ai_chat_service.dart:25:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\ai_service.dart:131:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\ai_service.dart:196:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\database_service.dart:14:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\database_service.dart:16:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\database_service.dart:19:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\database_service.dart:22:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\database_service.dart:27:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:10:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\storage_service.dart:15:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\auth_viewmodel.dart:28:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\auth_viewmodel.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\auth_viewmodel.dart:70:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\auth_viewmodel.dart:75:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\main_viewmodel.dart:1152:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\roadmap_viewmodel.dart:61:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\roadmap_viewmodel.dart:79:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\roadmap_viewmodel.dart:167:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\viewmodels\roadmap_viewmodel.dart:229:7 - avoid_print
+   info - Unnecessary use of 'toList' in a spread - lib\views\screens\career_goal_screen.dart:207:30 - unnecessary_to_list_in_spreads
+   info - Statements in an if should be enclosed in a block - lib\views\screens\career_readiness_screen.dart:96:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\views\screens\career_readiness_screen.dart:98:7 - curly_braces_in_flow_control_structures
+   info - The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\views\screens\home_screen.dart:14:8 - unnecessary_import
+   info - Statements in an if should be enclosed in a block - lib\views\screens\leaderboard_screen.dart:123:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\views\screens\leaderboard_screen.dart:125:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\views\screens\leaderboard_screen.dart:126:25 - curly_braces_in_flow_control_structures
+   info - Don't invoke 'print' in production code - lib\views\screens\login_screen.dart:28:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\views\screens\login_screen.dart:41:7 - avoid_print
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\views\screens\login_screen.dart:183:37 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\login_screen.dart:185:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\login_screen.dart:187:38 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\mentor_chat_screen.dart:42:16 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\mentor_chat_screen.dart:183:62 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\mentor_chat_screen.dart:185:26 - prefer_const_constructors
+   info - Unnecessary use of 'toList' in a spread - lib\views\screens\profile_setup_screen.dart:570:30 - unnecessary_to_list_in_spreads
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\views\screens\register_screen.dart:141:37 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\register_screen.dart:143:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\register_screen.dart:145:38 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\roadmap_screen.dart:40:14 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\roadmap_screen.dart:41:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\roadmap_screen.dart:42:18 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\views\screens\roadmap_screen.dart:43:23 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\roadmap_screen.dart:44:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\roadmap_screen.dart:45:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\screens\roadmap_screen.dart:45:31 - prefer_const_constructors
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\views\screens\roadmap_screen.dart:232:29 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\views\screens\roadmap_screen.dart:642:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\views\screens\roadmap_screen.dart:645:11 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\views\screens\roadmap_screen.dart:658:53 - use_build_context_synchronously
+   info - Use 'const' with the constructor to improve performance - lib\views\widgets\shimmer_loading.dart:60:16 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\views\widgets\shimmer_loading.dart:62:18 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\views\widgets\shimmer_loading.dart:64:23 - prefer_const_literals_to_create_immutables
+
+54 issues found. 
+(ran in 17.5s)

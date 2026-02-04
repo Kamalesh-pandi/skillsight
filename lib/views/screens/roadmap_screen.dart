@@ -229,7 +229,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                           Switch(
                             value: vm.isInterviewMode,
                             onChanged: (_) => vm.toggleInterviewMode(),
-                            activeColor: Colors.white,
+                            activeThumbColor: Colors.white,
                             activeTrackColor: Colors.white.withOpacity(0.5),
                           ),
                         ],
@@ -638,27 +638,27 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     );
 
     final questions = await roadmapVM.fetchQuizForTask(weekIndex, taskIndex);
-    if (mounted) {
-      Navigator.pop(context); // Close loading
-      if (questions.isNotEmpty) {
-        final bool? passed = await Navigator.push<bool>(
-          context,
-          MaterialPageRoute(
-            builder: (_) => QuizScreen(
-              weekIndex: weekIndex,
-              taskIndex: taskIndex,
-              topic: task.title,
-              questions: questions,
-            ),
+    if (!context.mounted) return;
+    Navigator.pop(context); // Close loading
+    if (questions.isNotEmpty) {
+      final bool? passed = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizScreen(
+            weekIndex: weekIndex,
+            taskIndex: taskIndex,
+            topic: task.title,
+            questions: questions,
           ),
-        );
+        ),
+      );
 
-        // Only complete if passed
-        if (passed == true) {
-          final mainVM = Provider.of<MainViewModel>(context, listen: false);
-          await roadmapVM.toggleTaskCompletion(weekIndex, taskIndex, true,
-              mainVM.currentUser, mainVM.updateUser);
-        }
+      // Only complete if passed
+      if (passed == true) {
+        if (!context.mounted) return;
+        final mainVM = Provider.of<MainViewModel>(context, listen: false);
+        await roadmapVM.toggleTaskCompletion(
+            weekIndex, taskIndex, true, mainVM.currentUser, mainVM.updateUser);
       }
     }
   }
