@@ -59,6 +59,9 @@ dependencies:
   speech_to_text: ^6.6.0
   flutter_tts: ^3.8.5
   lottie: ^3.0.0
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.1
+  flutter_timezone: ^1.0.8
 
 dev_dependencies:
   flutter_test:

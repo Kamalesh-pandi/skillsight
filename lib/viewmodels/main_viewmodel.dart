@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/career_role_model.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 
 class MainViewModel extends ChangeNotifier {
   final DatabaseService _dbService = DatabaseService();
@@ -9,11 +10,13 @@ class MainViewModel extends ChangeNotifier {
   List<CareerRoleModel> _roles = [];
   bool _isLoading = false;
   String? _errorMessage;
+  int _userRank = 0;
 
   UserModel? get currentUser => _currentUser;
   List<CareerRoleModel> get roles => _roles;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  int get userRank => _userRank;
 
   List<String> get allSkills {
     final Set<String> skillSet = {};
@@ -47,12 +50,39 @@ class MainViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       _currentUser = await _dbService.getUserProfile(uid);
+      if (_currentUser != null) {
+        await fetchUserRank();
+        if (_currentUser!.lastLearningTime != null) {
+          NotificationService()
+              .scheduleDailyReminder(_currentUser!.lastLearningTime!);
+        }
+      }
     } catch (e) {
       _errorMessage = 'Failed to load profile. Please check your connection.';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> fetchUserRank() async {
+    if (_currentUser == null) return;
+    try {
+      _userRank = await _dbService.getUserRank(_currentUser!.points);
+    } catch (e) {
+      print('ERROR: Failed to fetch rank: $e');
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateLastLearningTime() async {
+    if (_currentUser == null) return;
+    final now = DateTime.now();
+    _currentUser = _currentUser!.copyWith(lastLearningTime: now);
+    await _dbService.saveUserProfile(_currentUser!);
+    await NotificationService().scheduleDailyReminder(now);
+    notifyListeners();
   }
 
   Future<void> saveUserProfile(UserModel user) async {

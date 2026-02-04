@@ -610,7 +610,10 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   Future<void> _startQuiz(
       BuildContext context, int weekIndex, int taskIndex) async {
     final roadmapVM = Provider.of<RoadmapViewModel>(context, listen: false);
+    final mainVM = Provider.of<MainViewModel>(context, listen: false);
     final task = roadmapVM.currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+
+    mainVM.updateLastLearningTime(); // Track activity for notification
 
     // Show loading
     showDialog(
@@ -665,9 +668,11 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
 
   void _showResourceSheet(BuildContext context, int weekIndex, int taskIndex) {
     final roadmapVM = Provider.of<RoadmapViewModel>(context, listen: false);
+    final mainVM = Provider.of<MainViewModel>(context, listen: false);
 
     // Trigger fetch
     roadmapVM.fetchResourcesForTask(weekIndex, taskIndex);
+    mainVM.updateLastLearningTime(); // Track activity for notification
 
     showModalBottomSheet(
       context: context,

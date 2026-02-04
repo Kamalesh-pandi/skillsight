@@ -111,4 +111,16 @@ class DatabaseService {
     }, 'getLeaderboardUsers');
     return result ?? [];
   }
+
+  Future<int> getUserRank(int points) async {
+    return _handleDbOp<int>(() async {
+      final snapshot = await _db
+          .collection('users')
+          .where('points', isGreaterThan: points)
+          .count()
+          .get();
+      return snapshot.count! + 1;
+    }, 'getUserRank')
+        .then((value) => value ?? 0);
+  }
 }

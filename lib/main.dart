@@ -9,12 +9,16 @@ import 'viewmodels/roadmap_viewmodel.dart';
 import 'viewmodels/chat_viewmodel.dart';
 import 'views/screens/splash_screen.dart';
 import 'firebase_options.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize notifications
+  await NotificationService().init();
 
   runApp(const SkillSightApp());
 }

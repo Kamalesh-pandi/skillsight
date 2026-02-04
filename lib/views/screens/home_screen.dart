@@ -25,33 +25,6 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: GradientAppBar(
         title: 'SkillSight AI',
-        leading: user != null
-            ? Center(
-                child: GestureDetector(
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const LeaderboardScreen())),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(width: 8),
-                      const Icon(Icons.whatshot,
-                          color: Colors.orange, size: 20),
-                      const SizedBox(width: 2),
-                      Text(
-                        '${user.currentStreak}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : null,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
@@ -166,11 +139,12 @@ class HomeScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 10),
-            // Points & Leaderboard Summary Section
+            // Points, Rank & Streak Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(24),
@@ -191,17 +165,25 @@ class HomeScreen extends StatelessWidget {
                       value: '${user?.points ?? 0}',
                       color: Colors.amber,
                     ),
-                    Container(
-                      height: 40,
-                      width: 1,
-                      color: Theme.of(context).dividerColor.withOpacity(0.1),
-                    ),
+                    _buildDivider(context),
                     _buildStatItem(
                       context,
                       icon: Icons.emoji_events_rounded,
-                      label: 'Leaderboard',
-                      value: 'View Rank',
+                      label: 'Rank',
+                      value: mainVM.userRank > 0 ? '#${mainVM.userRank}' : '--',
                       color: Colors.pink,
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const LeaderboardScreen())),
+                    ),
+                    _buildDivider(context),
+                    _buildStatItem(
+                      context,
+                      icon: Icons.whatshot,
+                      label: 'Streak',
+                      value: '${user?.currentStreak ?? 0}',
+                      color: Colors.orange,
                       onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -409,6 +391,14 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDivider(BuildContext context) {
+    return Container(
+      height: 30,
+      width: 1,
+      color: Theme.of(context).dividerColor.withOpacity(0.1),
     );
   }
 }

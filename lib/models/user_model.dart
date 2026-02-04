@@ -11,6 +11,7 @@ class UserModel {
   final int longestStreak;
   final DateTime? lastStreakUpdate;
   final int points;
+  final DateTime? lastLearningTime;
 
   UserModel({
     required this.uid,
@@ -25,6 +26,7 @@ class UserModel {
     this.longestStreak = 0,
     this.lastStreakUpdate,
     this.points = 0,
+    this.lastLearningTime,
   });
 
   Map<String, dynamic> toMap() {
@@ -41,6 +43,7 @@ class UserModel {
       'longestStreak': longestStreak,
       'lastStreakUpdate': lastStreakUpdate?.toIso8601String(),
       'points': points,
+      'lastLearningTime': lastLearningTime?.toIso8601String(),
     };
   }
 
@@ -60,6 +63,9 @@ class UserModel {
           ? DateTime.parse(map['lastStreakUpdate'])
           : null,
       points: map['points'] ?? 0,
+      lastLearningTime: map['lastLearningTime'] != null
+          ? DateTime.parse(map['lastLearningTime'])
+          : null,
     );
   }
 
@@ -76,6 +82,7 @@ class UserModel {
     int? longestStreak,
     DateTime? lastStreakUpdate,
     int? points,
+    DateTime? lastLearningTime,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -90,6 +97,7 @@ class UserModel {
       longestStreak: longestStreak ?? this.longestStreak,
       lastStreakUpdate: lastStreakUpdate ?? this.lastStreakUpdate,
       points: points ?? this.points,
+      lastLearningTime: lastLearningTime ?? this.lastLearningTime,
     );
   }
 }

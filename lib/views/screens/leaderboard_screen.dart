@@ -66,87 +66,224 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Widget _buildList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _users!.length,
-      itemBuilder: (context, index) {
-        final user = _users![index];
-        final rank = index + 1;
+    return Column(
+      children: [
+        // Top 3 Players Section (Visual Highlight)
+        if (_users!.length >= 3) _buildTopThree(),
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardTheme.color,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: _buildRankBadge(rank),
-            title: Text(
-              user.displayName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text('${user.points} Points'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.local_fire_department,
-                    color: Colors.orange, size: 20),
-                const SizedBox(width: 4),
-                Text(
-                  '${user.currentStreak}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.orange,
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: _users!.length,
+            itemBuilder: (context, index) {
+              final user = _users![index];
+              final rank = index + 1;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.05),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  leading: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildRankBadge(rank),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: rank <= 3
+                              ? Colors.amber.withOpacity(0.2)
+                              : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Colors.grey[200],
+                          backgroundImage: user.photoUrl != null
+                              ? NetworkImage(user.photoUrl!)
+                              : null,
+                          child: user.photoUrl == null
+                              ? const Icon(Icons.person, color: Colors.grey)
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  title: Text(
+                    user.displayName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  subtitle: Row(
+                    children: [
+                      const Icon(Icons.stars_rounded,
+                          color: Colors.amber, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${user.points} pts',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.local_fire_department,
+                            color: Colors.orange, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${user.currentStreak}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopThree() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color?.withOpacity(0.5),
+        border: Border(
+          bottom: BorderSide(
+              color: Theme.of(context).dividerColor.withOpacity(0.1)),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _buildPodiumItem(_users![1], 2, 80), // Silver
+          _buildPodiumItem(_users![0], 1, 100), // Gold
+          _buildPodiumItem(_users![2], 3, 80), // Bronze
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPodiumItem(UserModel user, int rank, double height) {
+    Color medalColor = rank == 1
+        ? Colors.amber
+        : (rank == 2 ? Colors.grey[400]! : Colors.brown[300]!);
+
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [medalColor, medalColor.withOpacity(0.5)],
+                ),
+              ),
+              child: CircleAvatar(
+                radius: rank == 1 ? 40 : 32,
+                backgroundImage:
+                    user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
+                child: user.photoUrl == null
+                    ? const Icon(Icons.person, size: 30)
+                    : null,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black26)],
+              ),
+              child: Text(
+                rank == 1 ? '🥇' : (rank == 2 ? '🥈' : '🥉'),
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          user.displayName.split(' ')[0],
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        Text(
+          '${user.points} pt',
+          style: TextStyle(color: Colors.grey[600], fontSize: 11),
+        ),
+      ],
     );
   }
 
   Widget _buildRankBadge(int rank) {
-    Color? color;
-    if (rank == 1)
-      color = Colors.amber;
-    else if (rank == 2)
-      color = Colors.grey[400];
-    else if (rank == 3) color = Colors.brown[300];
+    Color? textColor;
+    double fontSize = 14;
+    FontWeight fontWeight = FontWeight.normal;
 
-    if (color != null) {
-      return Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: Center(
-          child: Text(
-            '$rank',
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-      );
+    if (rank == 1) {
+      textColor = Colors.amber[700];
+      fontWeight = FontWeight.bold;
+      fontSize = 16;
+    } else if (rank == 2) {
+      textColor = Colors.grey[600];
+      fontWeight = FontWeight.bold;
+    } else if (rank == 3) {
+      textColor = Colors.brown[400];
+      fontWeight = FontWeight.bold;
+    } else {
+      textColor = Colors.grey[500];
     }
 
     return SizedBox(
       width: 32,
       child: Center(
         child: Text(
-          '$rank',
-          style:
-              TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),
+          '#$rank',
+          style: TextStyle(
+            color: textColor,
+            fontWeight: fontWeight,
+            fontSize: fontSize,
+          ),
         ),
       ),
     );
