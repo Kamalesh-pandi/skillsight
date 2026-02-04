@@ -1,0 +1,29 @@
+﻿Analyzing skillsight...                                         
+
+   info - The imported package 'uuid' isn't a dependency of the importing package - lib\viewmodels\roadmap_viewmodel.dart:4:8 - depend_on_referenced_packages
+   info - Use 'const' with the constructor to improve performance - lib\viewmodels\roadmap_viewmodel.dart:34:11 - prefer_const_constructors
+   info - Statements in an if should be enclosed in a block - lib\views\screens\career_readiness_screen.dart:90:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\views\screens\career_readiness_screen.dart:92:7 - curly_braces_in_flow_control_structures
+  error - Expected to find ')' - lib\views\screens\resume_upload_screen.dart:111:6 - expected_token
+   info - Unnecessary use of 'toList' in a spread - lib\views\screens\skill_analysis_screen.dart:28:18 - unnecessary_to_list_in_spreads
+
+flutter : 6 issues 
+found. (ran in 2.3s)
+At line:1 char:1
++ flutter analyze > 
+final_analysis.txt 
+2>&1
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (6 issue   
+ s found. (ran in    
+ 2.3s):String) [    
+], RemoteExcepti    
+on
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 

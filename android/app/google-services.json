@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "983718372502",
+    "project_id": "skillsight-b3c1d",
+    "storage_bucket": "skillsight-b3c1d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:983718372502:android:2f95cd9f5c98ee2c620eb7",
+        "android_client_info": {
+          "package_name": "com.example.skillsight"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "983718372502-tkqq7msq0083sritr6pn40hs3mf1na4h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.skillsight",
+            "certificate_hash": "3311a03127dd8c901beb30c80edb749830bb95b4"
+          }
+        },
+        {
+          "client_id": "983718372502-98nsriq1ap0m30nkcojlsaqjs10369t3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM6v7FkC51HH0hyTksOrOOHkG6Zz07Hdw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "983718372502-98nsriq1ap0m30nkcojlsaqjs10369t3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
