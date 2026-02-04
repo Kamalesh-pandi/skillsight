@@ -229,7 +229,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                           Switch(
                             value: vm.isInterviewMode,
                             onChanged: (_) => vm.toggleInterviewMode(),
-                            activeThumbColor: Colors.white,
+                            activeColor: Colors.white,
                             activeTrackColor: Colors.white.withOpacity(0.5),
                           ),
                         ],
