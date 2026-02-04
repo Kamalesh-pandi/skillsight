@@ -98,4 +98,17 @@ class DatabaseService {
       }
     }, 'updateRoadmapTask');
   }
+
+  // Leaderboard
+  Future<List<UserModel>> getLeaderboardUsers() async {
+    final result = await _handleDbOp<List<UserModel>>(() async {
+      final snapshot = await _db
+          .collection('users')
+          .orderBy('points', descending: true)
+          .limit(20)
+          .get();
+      return snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+    }, 'getLeaderboardUsers');
+    return result ?? [];
+  }
 }

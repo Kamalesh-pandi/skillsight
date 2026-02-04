@@ -13,6 +13,7 @@ import 'login_screen.dart';
 import 'mentor_chat_screen.dart'; // Added Chat Screen
 import 'dart:ui';
 import '../widgets/gradient_app_bar.dart';
+import 'leaderboard_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -25,23 +26,53 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: GradientAppBar(
         title: 'SkillSight AI',
+        leading: user != null
+            ? Center(
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const LeaderboardScreen())),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(width: 8),
+                      const Icon(Icons.whatshot,
+                          color: Colors.orange, size: 20),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${user.currentStreak}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             onPressed: () async {
               final authVM = Provider.of<AuthViewModel>(context, listen: false);
+              final roadmapVM =
+                  Provider.of<RoadmapViewModel>(context, listen: false);
+              final navigator = Navigator.of(context);
+
               await authVM.logout();
               mainVM.onUserChanged(null);
-              if (context.mounted) {
-                Provider.of<RoadmapViewModel>(context, listen: false).clear();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              }
+
+              roadmapVM.clear();
+              navigator.pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: SingleChildScrollView(
@@ -136,6 +167,53 @@ class HomeScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 10),
+            // Points & Leaderboard Summary Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    _buildStatItem(
+                      context,
+                      icon: Icons.stars_rounded,
+                      label: 'Points',
+                      value: '${user?.points ?? 0}',
+                      color: Colors.amber,
+                    ),
+                    Container(
+                      height: 40,
+                      width: 1,
+                      color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    ),
+                    _buildStatItem(
+                      context,
+                      icon: Icons.emoji_events_rounded,
+                      label: 'Leaderboard',
+                      value: 'View Rank',
+                      color: Colors.pink,
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const LeaderboardScreen())),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
@@ -194,6 +272,17 @@ class HomeScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const RoadmapScreen())),
+                  ),
+                  _buildModernActionCard(
+                    context,
+                    title: 'Leaderboard',
+                    subtitle: 'See how you rank against others',
+                    icon: Icons.emoji_events_outlined,
+                    color: Colors.pink,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const LeaderboardScreen())),
                   ),
                   _buildModernActionCard(
                     context,
@@ -286,6 +375,39 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required String value,
+      required Color color,
+      VoidCallback? onTap}) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );

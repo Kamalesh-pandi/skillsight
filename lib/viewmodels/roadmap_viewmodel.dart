@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/roadmap_model.dart';
+import '../models/user_model.dart';
 import '../services/database_service.dart';
 import '../services/ai_service.dart'; // Assuming AIService is in this file
 import 'package:uuid/uuid.dart';
@@ -88,8 +89,8 @@ class RoadmapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> toggleTaskCompletion(
-      int weekIndex, int taskIndex, bool value) async {
+  Future<void> toggleTaskCompletion(int weekIndex, int taskIndex, bool value,
+      UserModel? currentUser, Function(UserModel)? onUserUpdate) async {
     if (_currentRoadmap != null) {
       await _dbService.updateRoadmapTask(
           _currentRoadmap!.id, weekIndex, taskIndex, value);
@@ -97,8 +98,50 @@ class RoadmapViewModel extends ChangeNotifier {
       final oldTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
       _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] =
           oldTask.copyWith(isCompleted: value);
+
+      // Streak Logic
+      if (value && currentUser != null && onUserUpdate != null) {
+        await _updateStreak(currentUser, onUserUpdate);
+      }
+
       notifyListeners();
     }
+  }
+
+  Future<void> _updateStreak(
+      UserModel user, Function(UserModel) onUserUpdate) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final lastUpdate = user.lastStreakUpdate != null
+        ? DateTime(user.lastStreakUpdate!.year, user.lastStreakUpdate!.month,
+            user.lastStreakUpdate!.day)
+        : null;
+
+    int newStreak = user.currentStreak;
+    int newPoints = user.points + 10; // 10 points per topic
+
+    if (lastUpdate == null) {
+      newStreak = 1;
+    } else if (today.isAfter(lastUpdate)) {
+      final difference = today.difference(lastUpdate).inDays;
+      if (difference == 1) {
+        newStreak += 1;
+      } else if (difference > 1) {
+        newStreak = 1;
+      }
+      // If difference is 0 (same day), streak stays the same
+    }
+
+    final updatedUser = user.copyWith(
+      currentStreak: newStreak,
+      longestStreak:
+          newStreak > user.longestStreak ? newStreak : user.longestStreak,
+      lastStreakUpdate: now,
+      points: newPoints,
+    );
+
+    await _dbService.saveUserProfile(updatedUser);
+    onUserUpdate(updatedUser);
   }
 
   Future<void> fetchResourcesForTask(int weekIndex, int taskIndex) async {

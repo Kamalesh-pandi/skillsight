@@ -7,6 +7,10 @@ class UserModel {
   final String? department;
   final String? careerGoal;
   final List<String> manualSkills;
+  final int currentStreak;
+  final int longestStreak;
+  final DateTime? lastStreakUpdate;
+  final int points;
 
   UserModel({
     required this.uid,
@@ -17,6 +21,10 @@ class UserModel {
     this.department,
     this.careerGoal,
     this.manualSkills = const [],
+    this.currentStreak = 0,
+    this.longestStreak = 0,
+    this.lastStreakUpdate,
+    this.points = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +37,10 @@ class UserModel {
       'department': department,
       'careerGoal': careerGoal,
       'manualSkills': manualSkills,
+      'currentStreak': currentStreak,
+      'longestStreak': longestStreak,
+      'lastStreakUpdate': lastStreakUpdate?.toIso8601String(),
+      'points': points,
     };
   }
 
@@ -42,6 +54,42 @@ class UserModel {
       department: map['department'],
       careerGoal: map['careerGoal'],
       manualSkills: List<String>.from(map['manualSkills'] ?? []),
+      currentStreak: map['currentStreak'] ?? 0,
+      longestStreak: map['longestStreak'] ?? 0,
+      lastStreakUpdate: map['lastStreakUpdate'] != null
+          ? DateTime.parse(map['lastStreakUpdate'])
+          : null,
+      points: map['points'] ?? 0,
+    );
+  }
+
+  UserModel copyWith({
+    String? uid,
+    String? email,
+    String? displayName,
+    String? photoUrl,
+    String? education,
+    String? department,
+    String? careerGoal,
+    List<String>? manualSkills,
+    int? currentStreak,
+    int? longestStreak,
+    DateTime? lastStreakUpdate,
+    int? points,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      photoUrl: photoUrl ?? this.photoUrl,
+      education: education ?? this.education,
+      department: department ?? this.department,
+      careerGoal: careerGoal ?? this.careerGoal,
+      manualSkills: manualSkills ?? this.manualSkills,
+      currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
+      lastStreakUpdate: lastStreakUpdate ?? this.lastStreakUpdate,
+      points: points ?? this.points,
     );
   }
 }

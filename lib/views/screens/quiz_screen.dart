@@ -41,6 +41,7 @@ class _QuizScreenState extends State<QuizScreen> {
       }
     });
 
+    final roadmapVM = Provider.of<RoadmapViewModel>(context, listen: false);
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
       if (_currentIndex < widget.questions.length - 1) {
@@ -54,7 +55,6 @@ class _QuizScreenState extends State<QuizScreen> {
           _isQuizFinished = true;
         });
         // Save score to ViewModel
-        final roadmapVM = Provider.of<RoadmapViewModel>(context, listen: false);
         roadmapVM.saveQuizScore(widget.weekIndex, widget.taskIndex, _score);
       }
     });
@@ -77,38 +77,40 @@ class _QuizScreenState extends State<QuizScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Progress Bar
-            LinearProgressIndicator(
-              value: (_currentIndex + 1) / widget.questions.length,
-              backgroundColor: Theme.of(context).dividerColor,
-              color: AppColors.primary,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Question ${_currentIndex + 1} of ${widget.questions.length}',
-              style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                  fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              question['question'],
-              style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold, height: 1.4),
-            ),
-            const SizedBox(height: 32),
-            ...List.generate(options.length, (index) {
-              return _buildOptionCard(
-                  index, options[index], question['correctIndex']);
-            }),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Progress Bar
+              LinearProgressIndicator(
+                value: (_currentIndex + 1) / widget.questions.length,
+                backgroundColor: Theme.of(context).dividerColor,
+                color: AppColors.primary,
+                minHeight: 8,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Question ${_currentIndex + 1} of ${widget.questions.length}',
+                style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                question['question'],
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold, height: 1.4),
+              ),
+              const SizedBox(height: 32),
+              ...List.generate(options.length, (index) {
+                return _buildOptionCard(
+                    index, options[index], question['correctIndex']);
+              }),
+            ],
+          ),
         ),
       ),
     );

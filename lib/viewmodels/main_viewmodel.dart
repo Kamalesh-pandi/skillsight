@@ -1171,4 +1171,9 @@ class MainViewModel extends ChangeNotifier {
       saveUserProfile(updatedUser);
     }
   }
+
+  void updateUser(UserModel user) {
+    _currentUser = user;
+    notifyListeners();
+  }
 }

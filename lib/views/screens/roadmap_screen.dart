@@ -471,17 +471,22 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                                       // If not completed, trigger quiz first
                                       if (!mounted) return;
 
-                                      // If already has a passing score, just check it
                                       if (task.quizScore != null &&
                                           task.quizScore! >= 5) {
+                                        final mainVM =
+                                            Provider.of<MainViewModel>(context,
+                                                listen: false);
                                         await vm.toggleTaskCompletion(
-                                            weekIndex, taskIndex, true);
-                                        return;
-                                      }
-
-                                      if (mounted) {
-                                        _startQuiz(
-                                            context, weekIndex, taskIndex);
+                                            weekIndex,
+                                            taskIndex,
+                                            true,
+                                            mainVM.currentUser,
+                                            mainVM.updateUser);
+                                      } else {
+                                        if (mounted) {
+                                          _startQuiz(
+                                              context, weekIndex, taskIndex);
+                                        }
                                       }
                                     },
                                     child: Container(
@@ -650,7 +655,9 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
 
         // Only complete if passed
         if (passed == true) {
-          await roadmapVM.toggleTaskCompletion(weekIndex, taskIndex, true);
+          final mainVM = Provider.of<MainViewModel>(context, listen: false);
+          await roadmapVM.toggleTaskCompletion(weekIndex, taskIndex, true,
+              mainVM.currentUser, mainVM.updateUser);
         }
       }
     }
