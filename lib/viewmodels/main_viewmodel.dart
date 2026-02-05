@@ -114,7 +114,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '1',
               title: 'Mobile App Developer (Flutter)',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe597, // phone_android
               requiredSkills: [
                 'Dart',
@@ -132,7 +132,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '2',
               title: 'Backend Developer (Java / Spring Boot)',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe5e1, // storage
               requiredSkills: [
                 'Java',
@@ -150,7 +150,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '3',
               title: 'Java Full Stack Developer',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe362, // layers
               requiredSkills: [
                 'Java',
@@ -167,7 +167,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '4',
               title: 'MERN Stack Developer',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe362, // layers
               requiredSkills: [
                 'MongoDB',
@@ -183,7 +183,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '5',
               title: 'MEAN Stack Developer',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe362, // layers
               requiredSkills: [
                 'MongoDB',
@@ -198,7 +198,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '6',
               title: 'Frontend Developer',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe1b1, // code
               requiredSkills: [
                 'HTML5',
@@ -215,7 +215,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '7',
               title: 'Web Developer',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe894, // public
               requiredSkills: [
                 'HTML',
@@ -356,7 +356,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '16',
               title: 'Android Developer (Kotlin)',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe597, // phone_android
               requiredSkills: [
                 'Kotlin',
@@ -369,7 +369,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '17',
               title: 'iOS Developer (Swift)',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode: 0xe30c, // phone_iphone
               requiredSkills: ['Swift', 'SwiftUI', 'Xcode', 'Core Data'],
               description:
@@ -379,7 +379,7 @@ class MainViewModel extends ChangeNotifier {
           CareerRoleModel(
               id: '18',
               title: 'Blockchain Developer',
-              category: 'Engineering',
+              category: 'CSE/IT',
               iconCode:
                   0xeaf0, // linked_camera (best fit for link/chain in available codes often) or 0xe23a
               requiredSkills: [

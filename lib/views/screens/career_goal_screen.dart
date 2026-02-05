@@ -83,7 +83,7 @@ class _CareerGoalScreenState extends State<CareerGoalScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    'Select the IT role you want to master',
+                    'Select the role you want to master',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
