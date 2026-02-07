@@ -20,6 +20,24 @@ class CareerGoalScreen extends StatefulWidget {
 class _CareerGoalScreenState extends State<CareerGoalScreen> {
   CareerRoleModel? _selectedRole;
   bool _initialized = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -48,11 +66,20 @@ class _CareerGoalScreenState extends State<CareerGoalScreen> {
   @override
   Widget build(BuildContext context) {
     final mainVM = context.watch<MainViewModel>();
-    final roles = mainVM.roles;
+    final allRoles = mainVM.roles;
+
+    // Filter roles based on search query
+    final filteredRoles = _searchQuery.isEmpty
+        ? allRoles
+        : allRoles.where((role) {
+            final query = _searchQuery.toLowerCase();
+            return role.title.toLowerCase().contains(query) ||
+                role.category.toLowerCase().contains(query);
+          }).toList();
 
     // Group roles by category
     final groupedRoles = <String, List<CareerRoleModel>>{};
-    for (var role in roles) {
+    for (var role in filteredRoles) {
       groupedRoles.putIfAbsent(role.category, () => []).add(role);
     }
 
@@ -85,6 +112,53 @@ class _CareerGoalScreenState extends State<CareerGoalScreen> {
                   child: Text(
                     'Select the role you want to master',
                     style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search roles (e.g., Python, Solar)...',
+                      prefixIcon: const Icon(Icons.search,
+                          color: AppColors.textSecondary),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close,
+                                  color: AppColors.textSecondary),
+                              onPressed: () {
+                                _searchController.clear();
+                                FocusScope.of(context).unfocus();
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Theme.of(context).cardTheme.color,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color:
+                              Theme.of(context).dividerColor.withOpacity(0.1),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color:
+                              Theme.of(context).dividerColor.withOpacity(0.1),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
