@@ -48,7 +48,7 @@ class SkillGapAnalyzerScreen extends StatelessWidget {
             _buildSection(context, 'Missing Skills', missingSkills, Colors.red),
             const SizedBox(height: 40),
             Center(
-              child: GradientButton(
+              child: GradientButton( 
                 text: 'Check Career Readiness',
                 onPressed: () {
                   final manualSkills = mainVM.currentUser?.manualSkills ?? [];
