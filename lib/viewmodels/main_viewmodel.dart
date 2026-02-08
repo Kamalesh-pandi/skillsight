@@ -52,6 +52,7 @@ class MainViewModel extends ChangeNotifier {
     try {
       _currentUser = await _dbService.getUserProfile(uid);
       if (_currentUser != null) {
+        await _checkStreak(_currentUser!);
         await fetchUserRank();
         if (_currentUser!.lastLearningTime != null) {
           NotificationService()
@@ -63,6 +64,25 @@ class MainViewModel extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _checkStreak(UserModel user) async {
+    if (user.lastStreakUpdate == null) return;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final lastUpdate = DateTime(
+      user.lastStreakUpdate!.year,
+      user.lastStreakUpdate!.month,
+      user.lastStreakUpdate!.day,
+    );
+
+    final difference = today.difference(lastUpdate).inDays;
+
+    if (difference > 1 && user.currentStreak > 0) {
+      final updatedUser = user.copyWith(currentStreak: 0);
+      await saveUserProfile(updatedUser);
     }
   }
 

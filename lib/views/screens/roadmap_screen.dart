@@ -40,11 +40,21 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
 
     if (roadmapVM.isLoading) {
       return Scaffold(
-        body: SafeArea(
+        body: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ShimmerLoading.rectangular(height: 240),
-              Expanded(child: ShimmerList()),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Generating your personalized roadmap...',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),

@@ -42,14 +42,24 @@ class NotificationService {
   Future<void> scheduleDailyReminder(DateTime lastLearningTime) async {
     await _notificationsPlugin.cancelAll();
 
-    final scheduledDate = tz.TZDateTime.from(
-      lastLearningTime.add(const Duration(days: 1)),
+    final now = tz.TZDateTime.now(tz.local);
+
+    // Create a scheduled date using TODAY's date but the time from lastLearningTime
+    // We need to convert lastLearningTime to local time components first
+    final localLastLearning = tz.TZDateTime.from(lastLearningTime, tz.local);
+
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
+      now.year,
+      now.month,
+      now.day,
+      localLastLearning.hour,
+      localLastLearning.minute,
     );
 
-    // If for some reason the scheduled date is in the past, don't schedule
-    if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
-      return;
+    // If the scheduled time has already passed for today, schedule it for tomorrow
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
     const AndroidNotificationDetails androidDetails =

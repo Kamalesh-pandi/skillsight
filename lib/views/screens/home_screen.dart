@@ -183,7 +183,7 @@ class HomeScreen extends StatelessWidget {
                       context,
                       icon: Icons.whatshot,
                       label: 'Streak',
-                      value: '${user?.currentStreak ?? 0}',
+                      value: '${user?.effectiveStreak ?? 0}',
                       color: Colors.orange,
                       onTap: () => Navigator.push(
                           context,

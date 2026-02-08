@@ -29,6 +29,26 @@ class UserModel {
     this.lastLearningTime,
   });
 
+  int get effectiveStreak {
+    if (lastStreakUpdate == null) return currentStreak;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final lastUpdate = DateTime(
+      lastStreakUpdate!.year,
+      lastStreakUpdate!.month,
+      lastStreakUpdate!.day,
+    );
+
+    final difference = today.difference(lastUpdate).inDays;
+
+    if (difference > 1) {
+      return 0; // Streak broken because more than 1 day passed
+    }
+
+    return currentStreak;
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

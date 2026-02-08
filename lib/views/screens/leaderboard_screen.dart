@@ -166,7 +166,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                             color: Colors.orange, size: 16),
                         const SizedBox(width: 4),
                         Text(
-                          '${user.currentStreak}',
+                          '${user.effectiveStreak}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
