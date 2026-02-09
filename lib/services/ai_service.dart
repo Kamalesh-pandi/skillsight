@@ -65,42 +65,57 @@ class AIService {
     final int missingCount = missingSkills.length;
 
     final prompt = '''
-      You are an expert career coach and technical mentor.
-      Target Career Goal: $careerGoal
-      Missing Skills (${missingCount}): ${missingSkills.join(', ')}
+You are an expert career coach and technical mentor.
+Target Career Goal: $careerGoal
+Missing Skills (${missingCount}): ${missingSkills.join(', ')}
 
-      Generate a comprehensive and realistic learning roadmap to master these missing skills.
+YOUR PRIMARY GOAL:
+- Build a SKILL DEPENDENCY ROADMAP, not just a flat list.
+- Think of concepts like: "Data Science → Python → Variables → Loops → Statistics → Machine Learning".
+- Earlier skills must be prerequisites for later ones, and learning order must be obvious from the plan.
 
-      IMPORTANT RULES (DURATION MUST DEPEND ON SKILLS, NOT STATIC):
-      - Let missingCount = $missingCount.
-      - Use this guideline to decide TOTAL WEEKS:
-        * If missingCount <= 3  ->  4–6 weeks
-        * If 4 <= missingCount <= 7  ->  8–12 weeks
-        * If 8 <= missingCount <= 12 ->  12–18 weeks
-        * If missingCount  > 12      ->  16–24 weeks
-      - Never generate a fixed 12-week plan blindly. Adjust total weeks so that each major skill/topic gets enough time.
-      - Minimum 4 weeks, maximum 24 weeks.
+STEP 1 – REASON ABOUT DEPENDENCIES (INTERNALLY):
+- Before writing the JSON, reason (silently) about:
+  - Which skills are FOUNDATIONAL vs INTERMEDIATE vs ADVANCED.
+  - Which skills depend on which earlier skills.
+- Organize missing skills into a logical progression from basic → intermediate → advanced.
+- Make sure there are NO circular dependencies.
 
-      Other constraints:
-      1. Provide a clear week-by-week breakdown.
-      2. For each week, provide:
-         - "focus": a short theme that groups related skills (e.g. "Core Java & OOP", "Spring Boot REST APIs").
-         - "tasks": 3–6 specific, actionable tasks/topics that help master the focus.
-      3. Make sure all listed missing skills are covered across the roadmap in a logical progression from basic to advanced.
-      4. Return the data ONLY as a JSON object with a key "roadmap" containing a list of weeks.
+STEP 2 – CONVERT TO WEEK-BY-WEEK ROADMAP (OUTPUT):
 
-      JSON Structure:
-      {
-        "roadmap": [
-          {
-            "week": 1,
-            "focus": "Topic name",
-            "tasks": ["Task 1", "Task 2", "Task 3"]
-          },
-          ...
-        ]
-      }
-    ''';
+IMPORTANT RULES (DURATION MUST DEPEND ON SKILLS, NOT STATIC):
+- Let missingCount = $missingCount.
+- Use this guideline to decide TOTAL WEEKS:
+  * If missingCount <= 3  ->  4–6 weeks
+  * If 4 <= missingCount <= 7  ->  8–12 weeks
+  * If 8 <= missingCount <= 12 ->  12–18 weeks
+  * If missingCount  > 12      ->  16–24 weeks
+- Never generate a fixed 12-week plan blindly. Adjust total weeks so that each major skill/topic gets enough time.
+- Minimum 4 weeks, maximum 24 weeks.
+
+Other constraints:
+1. Provide a clear week-by-week breakdown that RESPECTS the dependency order:
+   - Earlier weeks should only contain foundational topics.
+   - Advanced topics (that depend on earlier skills) must appear in later weeks.
+2. For each week, provide:
+   - "focus": a short theme that groups related skills (e.g. "Core Python & Basics", "Statistics Foundations", "Intro to Machine Learning").
+   - "tasks": 3–6 specific, actionable tasks/topics that help master the focus.
+     - Within a week, list tasks in the order they should be learned (prerequisites first).
+3. Make sure all listed missing skills are covered across the roadmap in a logical progression from basic to advanced.
+4. Return the data ONLY as a JSON object with a key "roadmap" containing a list of weeks.
+
+JSON Structure:
+{
+  "roadmap": [
+    {
+      "week": 1,
+      "focus": "Topic name",
+      "tasks": ["Task 1", "Task 2", "Task 3"]
+    },
+    ...
+  ]
+}
+''';
 
     try {
       final response = await _model.generateContent([Content.text(prompt)]);
