@@ -397,4 +397,95 @@ JSON Structure:
       rethrow;
     }
   }
+
+  Future<List<Map<String, dynamic>>> generateDailyMicroTasks(
+    String careerGoal, {
+    String? currentFocus,
+    List<String>? skillGaps,
+    int timeBudgetMinutes = 30,
+  }) async {
+    final safeSkillGaps =
+        (skillGaps ?? []).where((s) => s.trim().isNotEmpty).toList();
+
+    final prompt = '''
+You are a friendly career coach.
+
+Goal:
+- Generate 3 small learning tasks for TODAY that each take around 10–20 minutes.
+- Tasks must be concrete and easy to start immediately.
+
+User context:
+- Target role: $careerGoal
+- Current roadmap focus (optional): ${currentFocus ?? 'Not specified'}
+- Skill gaps to strengthen: ${safeSkillGaps.isEmpty ? 'general fundamentals for this role' : safeSkillGaps.join(', ')}
+- Total time budget for today: $timeBudgetMinutes minutes
+
+Guidelines:
+- Prefer a mix of formats across coding practice, short videos, and quick revision/notes.
+- Each task should be independent and completable in one sitting.
+- Avoid long projects, large tutorials, or vague advice like "read about X".
+- Where helpful, reference generic platforms only (e.g. "on LeetCode", "on YouTube") without forcing specific URLs.
+
+Return ONLY valid JSON with this structure:
+{
+  "tasks": [
+    {
+      "title": "Solve 2 array problems",
+      "description": "On LeetCode, filter for Easy array problems and solve any 2, focusing on two-pointer patterns.",
+      "skillTag": "DSA – Arrays",
+      "durationMinutes": 15
+    }
+  ]
+}
+''';
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from Gemini');
+
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+      }
+
+      final data = jsonDecode(textContent);
+      final rawTasks = List<Map<String, dynamic>>.from(data['tasks'] ?? []);
+
+      // Normalise & clamp durations
+      return rawTasks
+          .map((task) {
+            final title = task['title']?.toString().trim() ?? '';
+            if (title.isEmpty) return null;
+
+            int duration = 15;
+            final rawDuration = task['durationMinutes'];
+            if (rawDuration is num) {
+              duration = rawDuration.clamp(5, 30).toInt();
+            }
+
+            return {
+              'title': title,
+              'description': task['description']?.toString().trim() ?? '',
+              'skillTag': task['skillTag']?.toString().trim() ?? '',
+              'durationMinutes': duration,
+            };
+          })
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    } catch (e) {
+      final errorStr = e.toString();
+      if (errorStr.contains('quota')) {
+        throw Exception(
+            'Firebase AI Quota Exceeded: Please check your Firebase billing or project limits.');
+      } else if (errorStr.contains('firebaseml.googleapis.com')) {
+        throw Exception(
+            'Firebase ML API Disabled: Please enable the API at https://console.developers.google.com/apis/api/firebaseml.googleapis.com/overview?project=983718372502');
+      }
+      rethrow;
+    }
+  }
 }

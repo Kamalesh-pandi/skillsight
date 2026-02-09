@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../viewmodels/roadmap_viewmodel.dart';
 import '../../viewmodels/main_viewmodel.dart';
 import '../../models/roadmap_model.dart';
+import '../../models/daily_micro_task_model.dart';
 import '../../constants/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/gradient_app_bar.dart';
@@ -23,12 +24,17 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final roadmapVM = Provider.of<RoadmapViewModel>(context, listen: false);
       final mainVM = Provider.of<MainViewModel>(context, listen: false);
-      if (roadmapVM.currentRoadmap == null && mainVM.currentUser != null) {
-        roadmapVM.fetchRoadmap(mainVM.currentUser!.uid);
+      if (mainVM.currentUser != null) {
+        if (roadmapVM.currentRoadmap == null) {
+          await roadmapVM.fetchRoadmap(mainVM.currentUser!.uid);
+        }
+        await roadmapVM.loadTodayMicroTasks(
+          careerGoalOverride: mainVM.currentUser!.careerGoal,
+        );
       }
     });
   }
@@ -72,6 +78,12 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(context, roadmapVM),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: _buildDailyMicroTasksSection(context, roadmapVM),
+            ),
+          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
             sliver: SliverList(
@@ -313,6 +325,289 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
           ),
           const Icon(Icons.auto_graph, color: Colors.white, size: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDailyMicroTasksSection(
+      BuildContext context, RoadmapViewModel vm) {
+    final tasks = vm.todayMicroTasks;
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Today\'s Micro-Tasks',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (vm.isLoadingDailyTasks)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Preparing today\'s 10–20 min tasks...',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (vm.dailyTasksError != null)
+              Text(
+                vm.dailyTasksError!,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.redAccent,
+                ),
+              )
+            else if (tasks.isEmpty)
+              const Text(
+                'No micro-tasks generated for today.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              )
+            else
+              Column(
+                children: tasks.map((task) {
+                  final statusColor = switch (task.status) {
+                    DailyMicroTaskStatus.done => AppColors.success,
+                    DailyMicroTaskStatus.skipped => Colors.orange,
+                    DailyMicroTaskStatus.inProgress => AppColors.primary,
+                    DailyMicroTaskStatus.pending =>
+                      AppColors.textSecondary.withOpacity(0.7),
+                  };
+
+                  final statusLabel = switch (task.status) {
+                    DailyMicroTaskStatus.done => 'Done',
+                    DailyMicroTaskStatus.skipped => 'Skipped',
+                    DailyMicroTaskStatus.inProgress => 'In progress',
+                    DailyMicroTaskStatus.pending => 'Not started',
+                  };
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              margin: const EdgeInsets.only(top: 6, right: 8),
+                              decoration: BoxDecoration(
+                                color: statusColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    task.title,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (task.description.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        task.description,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusColor.withOpacity(0.08),
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.timelapse,
+                                              size: 12,
+                                              color: statusColor,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${task.durationMinutes} min',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: statusColor,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (task.skillTag.isNotEmpty) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .chipTheme
+                                                .backgroundColor,
+                                            borderRadius:
+                                                BorderRadius.circular(999),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.tag,
+                                                size: 12,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                task.skillTag,
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      const Spacer(),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                          border: Border.all(
+                                            color: statusColor.withOpacity(0.4),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          statusLabel,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: statusColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          vm.updateDailyTaskStatus(
+                                            task.id,
+                                            task.status ==
+                                                    DailyMicroTaskStatus.done
+                                                ? DailyMicroTaskStatus.pending
+                                                : DailyMicroTaskStatus.done,
+                                          );
+                                        },
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: const Size(0, 0),
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: Text(
+                                          task.status ==
+                                                  DailyMicroTaskStatus.done
+                                              ? 'Mark as not done'
+                                              : 'Mark as done',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      TextButton(
+                                        onPressed: () {
+                                          vm.updateDailyTaskStatus(
+                                            task.id,
+                                            task.status ==
+                                                    DailyMicroTaskStatus.skipped
+                                                ? DailyMicroTaskStatus.pending
+                                                : DailyMicroTaskStatus.skipped,
+                                          );
+                                        },
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: const Size(0, 0),
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: Text(
+                                          task.status ==
+                                                  DailyMicroTaskStatus.skipped
+                                              ? 'Unskip'
+                                              : 'Skip',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+          ],
+        ),
       ),
     );
   }

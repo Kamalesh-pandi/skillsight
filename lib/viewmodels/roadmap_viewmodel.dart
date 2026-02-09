@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/roadmap_model.dart';
 import '../models/user_model.dart';
+import '../models/daily_micro_task_model.dart';
 import '../services/database_service.dart';
 import '../services/ai_service.dart'; // Assuming AIService is in this file
 import 'package:uuid/uuid.dart';
@@ -13,9 +14,18 @@ class RoadmapViewModel extends ChangeNotifier {
   String? _errorMessage;
   final Map<String, Future<List<Map<String, dynamic>>>> _quizFetches = {};
 
+  // Daily micro-tasks (AI generated, per day)
+  List<DailyMicroTask> _todayMicroTasks = [];
+  DateTime? _microTasksDate;
+  bool _isLoadingDailyTasks = false;
+  String? _dailyTasksError;
+
   RoadmapModel? get currentRoadmap => _currentRoadmap;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  List<DailyMicroTask> get todayMicroTasks => _todayMicroTasks;
+  bool get isLoadingDailyTasks => _isLoadingDailyTasks;
+  String? get dailyTasksError => _dailyTasksError;
 
   double get completionPercentage {
     if (_currentRoadmap == null || _currentRoadmap!.weeks.isEmpty) return 0.0;
@@ -26,6 +36,10 @@ class RoadmapViewModel extends ChangeNotifier {
       completedTasks += week.tasks.where((t) => t.isCompleted).length;
     }
     return totalTasks == 0 ? 0.0 : (completedTasks / totalTasks);
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   Future<void> generateRoadmap(
@@ -87,6 +101,82 @@ class RoadmapViewModel extends ChangeNotifier {
   void clear() {
     _currentRoadmap = null;
     _isLoading = false;
+    _todayMicroTasks = [];
+    _microTasksDate = null;
+    notifyListeners();
+  }
+
+  Future<void> loadTodayMicroTasks({String? careerGoalOverride}) async {
+    if (careerGoalOverride == null && _currentRoadmap == null) return;
+
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+
+    if (_microTasksDate != null &&
+        _isSameDay(_microTasksDate!, todayDate) &&
+        _todayMicroTasks.isNotEmpty) {
+      return;
+    }
+
+    _isLoadingDailyTasks = true;
+    _dailyTasksError = null;
+    notifyListeners();
+
+    try {
+      final effectiveCareerGoal =
+          (careerGoalOverride != null && careerGoalOverride.trim().isNotEmpty)
+              ? careerGoalOverride.trim()
+              : _currentRoadmap?.careerGoal ?? 'Software Developer';
+
+      String? focus;
+      if (_currentRoadmap != null && _currentRoadmap!.weeks.isNotEmpty) {
+        final focusWeek = _currentRoadmap!.weeks.firstWhere(
+          (w) => w.tasks.any((t) => !t.isCompleted),
+          orElse: () => _currentRoadmap!.weeks.first,
+        );
+        focus = focusWeek.focus;
+      }
+
+      final aiTasks = await _aiService.generateDailyMicroTasks(
+        effectiveCareerGoal,
+        currentFocus: focus,
+        timeBudgetMinutes: 40,
+      );
+
+      _todayMicroTasks = aiTasks
+          .map((t) {
+            return DailyMicroTask(
+              id: const Uuid().v4(),
+              title: t['title']?.toString() ?? '',
+              description: t['description']?.toString() ?? '',
+              skillTag: t['skillTag']?.toString() ?? '',
+              durationMinutes: (t['durationMinutes'] as int?) ?? 15,
+              status: DailyMicroTaskStatus.pending,
+              date: todayDate,
+            );
+          })
+          .where((task) => task.title.isNotEmpty)
+          .toList();
+
+      _microTasksDate = todayDate;
+    } catch (e) {
+      _dailyTasksError = 'Failed to load today\'s micro-tasks: $e';
+    } finally {
+      _isLoadingDailyTasks = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> regenerateTodayMicroTasks({String? careerGoalOverride}) async {
+    _todayMicroTasks = [];
+    _microTasksDate = null;
+    await loadTodayMicroTasks(careerGoalOverride: careerGoalOverride);
+  }
+
+  void updateDailyTaskStatus(String id, DailyMicroTaskStatus status) {
+    final index = _todayMicroTasks.indexWhere((t) => t.id == id);
+    if (index == -1) return;
+    _todayMicroTasks[index] = _todayMicroTasks[index].copyWith(status: status);
     notifyListeners();
   }
 
