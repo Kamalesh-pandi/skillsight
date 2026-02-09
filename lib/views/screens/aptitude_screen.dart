@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_theme.dart';
 import '../widgets/gradient_app_bar.dart';
-import '../widgets/gradient_button.dart';
 import 'quiz_screen.dart';
 import '../../services/ai_service.dart';
 

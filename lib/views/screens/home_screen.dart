@@ -14,6 +14,8 @@ import 'mentor_chat_screen.dart'; // Added Chat Screen
 import '../widgets/gradient_app_bar.dart';
 import 'leaderboard_screen.dart';
 import 'aptitude_screen.dart';
+import 'industry_demand_screen.dart';
+import 'project_generator_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -109,6 +111,8 @@ class HomeScreen extends StatelessWidget {
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         const SizedBox(height: 4),
                         Container(
@@ -122,6 +126,8 @@ class HomeScreen extends StatelessWidget {
                             user?.careerGoal ?? 'Set your goal',
                             style: const TextStyle(
                                 color: Colors.white, fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
@@ -221,6 +227,28 @@ class HomeScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const MentorChatScreen())),
+                  ),
+                  _buildModernActionCard(
+                    context,
+                    title: 'Market Demand Analyzer',
+                    subtitle: 'Real-time industry trends & skill gaps',
+                    icon: Icons.trending_up,
+                    color: Colors.redAccent,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const IndustryDemandScreen())),
+                  ),
+                  _buildModernActionCard(
+                    context,
+                    title: 'Personalized Project Generator',
+                    subtitle: 'AI suggests portfolio projects for your goals',
+                    icon: Icons.rocket_launch_outlined,
+                    color: Colors.deepPurple,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ProjectGeneratorScreen())),
                   ),
                   _buildModernActionCard(
                     context,
@@ -346,6 +374,7 @@ class HomeScreen extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         title,
@@ -353,11 +382,15 @@ class HomeScreen extends StatelessWidget {
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
                         style: Theme.of(context).textTheme.bodySmall,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
                     ],
                   ),

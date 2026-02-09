@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_vertexai/firebase_vertexai.dart';
+import '../models/industry_trend_model.dart';
+import '../models/project_suggestion_model.dart';
 
 class AIService {
   late final GenerativeModel _model;
@@ -60,16 +62,31 @@ class AIService {
 
   Future<List<Map<String, dynamic>>> generateRoadmap(
       String careerGoal, List<String> missingSkills) async {
+    final int missingCount = missingSkills.length;
+
     final prompt = '''
       You are an expert career coach and technical mentor.
       Target Career Goal: $careerGoal
-      Missing Skills: ${missingSkills.join(', ')}
+      Missing Skills (${missingCount}): ${missingSkills.join(', ')}
 
       Generate a comprehensive and realistic learning roadmap to master these missing skills.
-      Important Rules:
-      1. The duration should be flexible based on the complexity of skills (minimum 4 weeks, maximum 12 weeks).
-      2. Provide a week-by-week breakdown.
-      3. For each week, provide a focus and a list of 3-5 specific, actionable tasks/topics.
+
+      IMPORTANT RULES (DURATION MUST DEPEND ON SKILLS, NOT STATIC):
+      - Let missingCount = $missingCount.
+      - Use this guideline to decide TOTAL WEEKS:
+        * If missingCount <= 3  ->  4–6 weeks
+        * If 4 <= missingCount <= 7  ->  8–12 weeks
+        * If 8 <= missingCount <= 12 ->  12–18 weeks
+        * If missingCount  > 12      ->  16–24 weeks
+      - Never generate a fixed 12-week plan blindly. Adjust total weeks so that each major skill/topic gets enough time.
+      - Minimum 4 weeks, maximum 24 weeks.
+
+      Other constraints:
+      1. Provide a clear week-by-week breakdown.
+      2. For each week, provide:
+         - "focus": a short theme that groups related skills (e.g. "Core Java & OOP", "Spring Boot REST APIs").
+         - "tasks": 3–6 specific, actionable tasks/topics that help master the focus.
+      3. Make sure all listed missing skills are covered across the roadmap in a logical progression from basic to advanced.
       4. Return the data ONLY as a JSON object with a key "roadmap" containing a list of weeks.
 
       JSON Structure:
@@ -253,6 +270,116 @@ class AIService {
     } catch (e) {
       print('DEBUG: Gemini Interview Questions Error: $e');
       return [];
+    }
+  }
+
+  Future<IndustryTrendModel?> fetchIndustryTrends(
+      String careerGoal, List<String> currentSkills) async {
+    final prompt = '''
+      You are a Real-Time Market Analyst.
+      Analyze the current job market demand for the role: "$careerGoal".
+      User's Current Skills: ${currentSkills.join(', ')}
+
+      Provide a "Real-Time" Industry Demand Analysis.
+      
+      Return ONLY a JSON object with:
+      1. "matchScore": A score from 0 to 100 indicating how well the user's skills match the current market demand.
+      2. "topSkills": A list of the top 5 most demanding skills for this role right now. Each item should have:
+         - "name": Skill name
+         - "demandPercentage": Estimated % of job postings requiring this skill (e.g., 85)
+         - "level": Required proficiency (Beginner, Intermediate, Advanced)
+      3. "hotSkills": A list of 3 emerging or "Hot" skills that are gaining traction fast.
+      4. "missingSkills": A list of critical skills the user is missing to be job-ready.
+
+      JSON Structure:
+      {
+        "matchScore": 75,
+        "topSkills": [
+          {"name": "Flutter", "demandPercentage": 90, "level": "Advanced"},
+          ...
+        ],
+        "hotSkills": ["Riverpod", "Clean Architecture", "CI/CD"],
+        "missingSkills": ["Unit Testing", "CI/CD"]
+      }
+    ''';
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from Gemini');
+
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+        return IndustryTrendModel.fromMap(data);
+      }
+      return null;
+    } catch (e) {
+      print('DEBUG: Gemini Industry Trends Error: $e');
+      return null;
+    }
+  }
+
+  Future<ProjectSuggestionModel?> generatePortfolioProject(
+      String careerGoal, List<String> skillGaps) async {
+    final skillGapsStr = skillGaps.isEmpty
+        ? 'general professional skills'
+        : skillGaps.join(', ');
+
+    final prompt = '''
+      You are an expert career coach and portfolio advisor.
+      Target Career Goal: $careerGoal
+      User's Skill Gaps (areas to strengthen): $skillGapsStr
+
+      Generate ONE personalized portfolio project that:
+      1. Helps fill the user's skill gaps
+      2. Is relevant to their career goal
+      3. Is achievable as a solo project (2–4 weeks of focused work)
+      4. Would impress recruiters and hiring managers
+
+      Return ONLY a JSON object with:
+      1. "projectIdea": A compelling project name and 2–3 sentence description of what it does and why it's valuable.
+      2. "techStack": List of 4–8 specific technologies/frameworks to use (e.g., "Flutter", "Firebase", "Dart", "Riverpod").
+      3. "buildPlan": List of 6–10 step-by-step phases to build the project. Each step should be actionable (e.g., "Set up Firebase Auth and implement login/signup screens").
+      4. "githubStructure": List of folder/file paths suggesting the repo structure (e.g., "lib/", "lib/models/", "lib/services/", "README.md").
+
+      JSON Structure:
+      {
+        "projectIdea": "string",
+        "techStack": ["string", "string", ...],
+        "buildPlan": ["Step 1...", "Step 2...", ...],
+        "githubStructure": ["folder/", "folder/file.dart", ...]
+      }
+    ''';
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from Gemini');
+
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+        return ProjectSuggestionModel.fromMap(data);
+      }
+      return null;
+    } catch (e) {
+      final errorStr = e.toString();
+      if (errorStr.contains('quota')) {
+        throw Exception(
+            'Firebase AI Quota Exceeded: Please check your Firebase billing or project limits.');
+      } else if (errorStr.contains('firebaseml.googleapis.com')) {
+        throw Exception('Firebase ML API Disabled: Please enable the API.');
+      }
+      rethrow;
     }
   }
 }

@@ -17,7 +17,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize notifications
   await NotificationService().init();
 
   runApp(const SkillSightApp());

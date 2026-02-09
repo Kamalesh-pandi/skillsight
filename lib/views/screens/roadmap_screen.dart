@@ -518,6 +518,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                                                 : null,
                                             fontSize: 14,
                                           ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
                                         ),
                                         if (task.quizScore != null)
                                           Padding(

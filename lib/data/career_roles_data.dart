@@ -13,11 +13,28 @@ List<CareerRoleModel> getInitialCareerRoles() {
         category: 'CSE/IT',
         iconCode: 0xe5e1,
         requiredSkills: [
+          // Basic
+          'Core Java',
+          'OOP Fundamentals',
+          'Data Structures & Algorithms',
+          'SQL & Relational Databases',
+          // Existing / Intermediate
           'Java',
           'Spring Boot',
           'Hibernate',
           'Microservices',
-          'REST'
+          'REST',
+          // Advanced
+          'Spring Security',
+          'Spring Data JPA',
+          'API Design & Documentation (OpenAPI/Swagger)',
+          'Caching (Redis)',
+          'Message Queues (Kafka/RabbitMQ)',
+          'Docker',
+          'Kubernetes',
+          'CI/CD Pipelines',
+          'Cloud Deployment (AWS/Azure/GCP)',
+          'Monitoring & Logging (ELK/Prometheus/Grafana)'
         ],
         description:
             'Builds scalable enterprise backends using Java ecosystem.'),
@@ -26,7 +43,32 @@ List<CareerRoleModel> getInitialCareerRoles() {
         title: 'Backend Developer (Python)',
         category: 'CSE/IT',
         iconCode: 0xe5e1,
-        requiredSkills: ['Python', 'Django', 'FastAPI', 'Flask', 'PostgreSQL'],
+        requiredSkills: [
+          // Basic
+          'Core Python',
+          'OOP Fundamentals',
+          'Data Structures & Algorithms',
+          'Version Control (Git)',
+          'SQL Fundamentals',
+          // Existing / Intermediate
+          'Python',
+          'Django',
+          'FastAPI',
+          'Flask',
+          'PostgreSQL',
+          // Advanced
+          'Asynchronous Programming (asyncio)',
+          'REST API Design',
+          'Authentication & Authorization (JWT/OAuth2)',
+          'ORMs (Django ORM/SQLAlchemy)',
+          'Testing (PyTest/UnitTest)',
+          'Docker',
+          'CI/CD Pipelines',
+          'Caching (Redis)',
+          'Celery & Task Queues',
+          'API Documentation (OpenAPI/Swagger)',
+          'Cloud Deployment (AWS/Azure/GCP)'
+        ],
         description:
             'Develops rapid and efficient backends using Python frameworks.'),
     CareerRoleModel(
@@ -35,11 +77,29 @@ List<CareerRoleModel> getInitialCareerRoles() {
         category: 'CSE/IT',
         iconCode: 0xe5e1,
         requiredSkills: [
+          // Basic
+          'Core JavaScript (ES6+)',
+          'Asynchronous Programming (Callbacks/Promises/Async-Await)',
+          'HTTP & REST Fundamentals',
+          // Existing / Intermediate
           'Node.js',
           'Express',
           'NestJS',
           'MongoDB',
-          'TypeScript'
+          'TypeScript',
+          // Advanced
+          'API Design & Versioning',
+          'Authentication & Authorization (JWT/OAuth2)',
+          'Database Design (NoSQL & SQL)',
+          'ORM/ODM (Mongoose/Prisma/TypeORM)',
+          'Caching (Redis)',
+          'Message Queues (Kafka/RabbitMQ)',
+          'Microservices Architecture',
+          'Testing (Jest/Supertest)',
+          'Docker',
+          'Kubernetes',
+          'CI/CD Pipelines',
+          'Monitoring & Logging (Winston/ELK/Prometheus)'
         ],
         description:
             'Builds high-performance I/O intensive backends with Node.js.'),
@@ -48,7 +108,31 @@ List<CareerRoleModel> getInitialCareerRoles() {
         title: 'Backend Developer (.NET)',
         category: 'CSE/IT',
         iconCode: 0xe5e1,
-        requiredSkills: ['C#', '.NET Core', 'ASP.NET', 'SQL Server', 'Azure'],
+        requiredSkills: [
+          // Basic
+          'C# Fundamentals',
+          'OOP & SOLID Principles',
+          'Data Structures & Algorithms',
+          'SQL Fundamentals',
+          // Existing / Intermediate
+          'C#',
+          '.NET Core',
+          'ASP.NET',
+          'SQL Server',
+          'Azure',
+          // Advanced
+          'Entity Framework Core',
+          'ASP.NET Web API',
+          'Authentication & Authorization (Identity/JWT/OAuth2)',
+          'REST API Design & Documentation',
+          'Design Patterns',
+          'Microservices with .NET',
+          'Docker',
+          'Kubernetes',
+          'CI/CD Pipelines (Azure DevOps/GitHub Actions)',
+          'Cloud Native Development on Azure',
+          'Monitoring & Logging (App Insights/Serilog)'
+        ],
         description:
             'Develops robust enterprise solutions using the Microsoft stack.'),
     CareerRoleModel(
@@ -57,11 +141,26 @@ List<CareerRoleModel> getInitialCareerRoles() {
         category: 'CSE/IT',
         iconCode: 0xe5e1,
         requiredSkills: [
+          // Basic
+          'Programming Fundamentals',
+          'Data Structures & Algorithms',
+          'Linux & Command Line',
+          // Existing / Intermediate
           'Go',
           'gRPC',
           'Microservices',
           'Concurrency',
-          'Docker'
+          'Docker',
+          // Advanced
+          'Go Routines & Channels',
+          'REST & gRPC API Design',
+          'Database Access (SQL/NoSQL)',
+          'Distributed Systems Basics',
+          'Message Queues (Kafka/NATS/RabbitMQ)',
+          'Performance Profiling & Optimization',
+          'Kubernetes',
+          'Cloud Native Development (AWS/GCP/Azure)',
+          'Observability (Prometheus/Grafana/OpenTelemetry)'
         ],
         description: 'Builds highly concurrent and fast backend services.'),
     CareerRoleModel(
@@ -70,11 +169,28 @@ List<CareerRoleModel> getInitialCareerRoles() {
         category: 'CSE/IT',
         iconCode: 0xe5e1,
         requiredSkills: [
+          // Basic
+          'Core PHP',
+          'Programming Fundamentals',
+          'HTML/CSS Basics',
+          'SQL Fundamentals',
+          // Existing / Intermediate
           'PHP',
           'Laravel',
           'MySQL',
           'Composer',
-          'API Development'
+          'API Development',
+          // Advanced
+          'REST API Design & Authentication (JWT/OAuth2)',
+          'Eloquent ORM',
+          'Blade Templating',
+          'Queues & Jobs',
+          'Caching (Redis/Memcached)',
+          'Testing (PHPUnit/Pest)',
+          'Security Best Practices (OWASP)',
+          'Docker',
+          'CI/CD Pipelines',
+          'Cloud Deployment (AWS/Forge/Vapor)'
         ],
         description: 'Develops web applications using modern PHP frameworks.'),
 
@@ -85,11 +201,29 @@ List<CareerRoleModel> getInitialCareerRoles() {
         category: 'CSE/IT',
         iconCode: 0xe1b1,
         requiredSkills: [
+          // Basic
+          'HTML5',
+          'CSS3',
+          'Responsive Design',
+          'Core JavaScript (ES6+)',
+          // Existing / Intermediate
           'React',
           'Redux',
           'JavaScript',
           'HTML5/CSS',
-          'Webpack'
+          'Webpack',
+          // Advanced
+          'TypeScript',
+          'React Hooks & Context',
+          'State Management (Redux Toolkit/Zustand)',
+          'Routing (React Router)',
+          'API Integration (REST/GraphQL)',
+          'Testing (Jest/React Testing Library)',
+          'Performance Optimization',
+          'Accessibility (a11y)',
+          'CSS-in-JS (Styled Components/Emotion)',
+          'Build & Bundling (Vite/Parcel)',
+          'CI/CD & Deployment (Vercel/Netlify/AWS)'
         ],
         description: 'Builds dynamic UIs using the React library.'),
     CareerRoleModel(
@@ -97,7 +231,30 @@ List<CareerRoleModel> getInitialCareerRoles() {
         title: 'Frontend Developer (Angular)',
         category: 'CSE/IT',
         iconCode: 0xe1b1,
-        requiredSkills: ['Angular', 'TypeScript', 'RxJS', 'HTML/SCSS', 'Ngrx'],
+        requiredSkills: [
+          // Basic
+          'HTML5',
+          'CSS3/SCSS',
+          'Core JavaScript (ES6+)',
+          // Existing / Intermediate
+          'Angular',
+          'TypeScript',
+          'RxJS',
+          'HTML/SCSS',
+          'Ngrx',
+          // Advanced
+          'Angular CLI',
+          'Component Architecture & Modules',
+          'Reactive Forms & Template Forms',
+          'Routing & Guards',
+          'State Management (NgRx/Akita)',
+          'REST API Integration',
+          'Testing (Jasmine/Karma)',
+          'Performance Tuning & Lazy Loading',
+          'Accessibility (a11y)',
+          'Angular Material',
+          'CI/CD & Deployment'
+        ],
         description:
             'Develops enterprise-grade single page applications with Angular.'),
     CareerRoleModel(
@@ -105,7 +262,29 @@ List<CareerRoleModel> getInitialCareerRoles() {
         title: 'Frontend Developer (Vue.js)',
         category: 'CSE/IT',
         iconCode: 0xe1b1,
-        requiredSkills: ['Vue.js', 'Vuex', 'JavaScript', 'Nuxt.js', 'Tailwind'],
+        requiredSkills: [
+          // Basic
+          'HTML5',
+          'CSS3',
+          'Core JavaScript (ES6+)',
+          // Existing / Intermediate
+          'Vue.js',
+          'Vuex',
+          'JavaScript',
+          'Nuxt.js',
+          'Tailwind',
+          // Advanced
+          'Composition API',
+          'Vue Router',
+          'State Management (Pinia/Vuex)',
+          'SSR with Nuxt',
+          'REST/GraphQL API Integration',
+          'Testing (Vitest/Jest/Cypress)',
+          'Component Libraries (Vuetify/Element Plus)',
+          'Performance Optimization',
+          'Accessibility (a11y)',
+          'Build Tooling (Vite/Webpack)'
+        ],
         description:
             'Creates flexible and lightweight user interfaces with Vue.'),
     CareerRoleModel(
@@ -113,7 +292,29 @@ List<CareerRoleModel> getInitialCareerRoles() {
         title: 'Frontend Developer (Next.js)',
         category: 'CSE/IT',
         iconCode: 0xe1b1,
-        requiredSkills: ['Next.js', 'React', 'SSR', 'TypeScript', 'Vercel'],
+        requiredSkills: [
+          // Basic
+          'HTML5',
+          'CSS3',
+          'Core JavaScript (ES6+)',
+          // Existing / Intermediate
+          'Next.js',
+          'React',
+          'SSR',
+          'TypeScript',
+          'Vercel',
+          // Advanced
+          'File-based Routing & App Router',
+          'Server Components',
+          'API Routes',
+          'Incremental Static Regeneration (ISR)',
+          'SEO Fundamentals',
+          'Authentication (NextAuth/Auth0)',
+          'Performance Optimization & Caching',
+          'Styling (Tailwind/CSS Modules)',
+          'Testing (Jest/React Testing Library)',
+          'Deployment & Edge Functions'
+        ],
         description:
             'Builds SEO-friendly and performant web apps with Next.js.'),
 
@@ -123,7 +324,29 @@ List<CareerRoleModel> getInitialCareerRoles() {
         title: 'Mobile Developer (Flutter)',
         category: 'CSE/IT',
         iconCode: 0xe597,
-        requiredSkills: ['Dart', 'Flutter', 'Bloc', 'Firebase', 'Mobile UI'],
+        requiredSkills: [
+          // Basic
+          'Programming Fundamentals',
+          'OOP Concepts',
+          'Mobile Design Basics',
+          // Existing / Intermediate
+          'Dart',
+          'Flutter',
+          'Bloc',
+          'Firebase',
+          'Mobile UI',
+          // Advanced
+          'State Management (Bloc/Provider/GetX/Riverpod)',
+          'Navigation & Deep Linking',
+          'REST API Integration',
+          'Offline Storage (SQLite/Hive)',
+          'Animations & Custom Widgets',
+          'Platform Channels (Native Integration)',
+          'Testing (Unit/Widget/Integration)',
+          'App Store & Play Store Deployment',
+          'Performance Optimization',
+          'CI/CD for Mobile (Codemagic/GitHub Actions)'
+        ],
         description: 'Creates cross-platform apps from a single codebase.'),
     CareerRoleModel(
         id: 'cse_mob_rn',
@@ -131,10 +354,24 @@ List<CareerRoleModel> getInitialCareerRoles() {
         category: 'CSE/IT',
         iconCode: 0xe597,
         requiredSkills: [
+          // Basic
+          'JavaScript Fundamentals',
+          'HTML/CSS Basics',
+          // Existing / Intermediate
           'React Native',
           'JavaScript',
           'Redux',
-          'Native Modules'
+          'Native Modules',
+          // Advanced
+          'React Hooks',
+          'Navigation (React Navigation)',
+          'State Management (Redux/MobX/Zustand)',
+          'REST API Integration',
+          'Offline Storage (AsyncStorage/SQLite)',
+          'Bridge & Native Modules (Android/iOS)',
+          'Testing (Jest/Detox)',
+          'App Store & Play Store Deployment',
+          'Performance Optimization & Profiling'
         ],
         description: 'Builds mobile apps using React and JavaScript.'),
     CareerRoleModel(
@@ -142,7 +379,26 @@ List<CareerRoleModel> getInitialCareerRoles() {
         title: 'iOS Developer (Swift)',
         category: 'CSE/IT',
         iconCode: 0xe30c,
-        requiredSkills: ['Swift', 'SwiftUI', 'UIKit', 'Xcode', 'CoreData'],
+        requiredSkills: [
+          // Basic
+          'Programming Fundamentals',
+          'OOP Concepts',
+          // Existing / Intermediate
+          'Swift',
+          'SwiftUI',
+          'UIKit',
+          'Xcode',
+          'CoreData',
+          // Advanced
+          'Auto Layout & Storyboards',
+          'Networking (URLSession/Alamofire)',
+          'Concurrency (GCD/Async-Await)',
+          'Architectures (MVC/MVVM/Clean)',
+          'Unit & UI Testing (XCTest)',
+          'Push Notifications',
+          'App Store Deployment & Certificates',
+          'Performance & Memory Profiling (Instruments)'
+        ],
         description: 'Builds native iOS applications for Apple ecosystem.'),
     CareerRoleModel(
         id: 'cse_mob_android',
@@ -150,10 +406,23 @@ List<CareerRoleModel> getInitialCareerRoles() {
         category: 'CSE/IT',
         iconCode: 0xe597,
         requiredSkills: [
+          // Basic
+          'Programming Fundamentals',
+          'OOP Concepts',
+          // Existing / Intermediate
           'Kotlin',
           'Jetpack Compose',
           'Coroutines',
-          'Android SDK'
+          'Android SDK',
+          // Advanced
+          'Android Jetpack (ViewModel/LiveData/Room)',
+          'Architectures (MVVM/MVI/Clean)',
+          'REST API Integration (Retrofit/OkHttp)',
+          'Navigation Component',
+          'Dependency Injection (Hilt/Koin)',
+          'Testing (JUnit/Espresso)',
+          'Play Store Deployment',
+          'Performance Optimization & Profiling'
         ],
         description: 'Develops native Android applications efficiently.'),
 

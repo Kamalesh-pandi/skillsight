@@ -254,6 +254,8 @@ class _CareerGoalScreenState extends State<CareerGoalScreen> {
                                                     .bodyLarge
                                                     ?.color,
                                               ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
