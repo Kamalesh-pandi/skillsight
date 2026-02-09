@@ -106,13 +106,23 @@ class RoadmapViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadTodayMicroTasks({String? careerGoalOverride}) async {
+  Future<void> loadTodayMicroTasks({
+    String? careerGoalOverride,
+    bool forceRefresh = false,
+    String? userId,
+  }) async {
+    final effectiveUserId = userId ?? _currentRoadmap?.userId;
+    // We need at least a user ID to load/save.
+    // If careerGoalOverride is provided, we can generate without roadmap.
+    // If no override and no roadmap, we can't do anything.
+    if (effectiveUserId == null) return;
     if (careerGoalOverride == null && _currentRoadmap == null) return;
 
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
 
-    if (_microTasksDate != null &&
+    if (!forceRefresh &&
+        _microTasksDate != null &&
         _isSameDay(_microTasksDate!, todayDate) &&
         _todayMicroTasks.isNotEmpty) {
       return;
@@ -123,13 +133,34 @@ class RoadmapViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // 1. Try loading from DB first
+      if (!forceRefresh) {
+        final savedTasks = await _dbService.getDailyTasks(effectiveUserId);
+        if (savedTasks.isNotEmpty &&
+            _isSameDay(savedTasks.first.date, todayDate)) {
+          _todayMicroTasks = savedTasks;
+          _microTasksDate = todayDate;
+          _isLoadingDailyTasks = false;
+          notifyListeners();
+          return;
+        }
+      }
+
+      // 2. Generate new tasks
       final effectiveCareerGoal =
           (careerGoalOverride != null && careerGoalOverride.trim().isNotEmpty)
               ? careerGoalOverride.trim()
               : _currentRoadmap?.careerGoal ?? 'Software Developer';
 
       String? focus;
-      if (_currentRoadmap != null && _currentRoadmap!.weeks.isNotEmpty) {
+      // Only use the roadmap's focus if the current roadmap matches the target goal.
+      // If the user switched roles but hasn't generated a new roadmap yet,
+      // we shouldn't use the old roadmap's focus (e.g. don't use "Baking" focus for "Data Science" tasks).
+      bool isSameGoal = _currentRoadmap != null &&
+          _currentRoadmap!.careerGoal.toLowerCase().trim() ==
+              effectiveCareerGoal.toLowerCase().trim();
+
+      if (isSameGoal && _currentRoadmap!.weeks.isNotEmpty) {
         final focusWeek = _currentRoadmap!.weeks.firstWhere(
           (w) => w.tasks.any((t) => !t.isCompleted),
           orElse: () => _currentRoadmap!.weeks.first,
@@ -159,6 +190,9 @@ class RoadmapViewModel extends ChangeNotifier {
           .toList();
 
       _microTasksDate = todayDate;
+
+      // 3. Save to DB
+      await _dbService.saveDailyTasks(effectiveUserId, _todayMicroTasks);
     } catch (e) {
       _dailyTasksError = 'Failed to load today\'s micro-tasks: $e';
     } finally {
@@ -167,10 +201,17 @@ class RoadmapViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> regenerateTodayMicroTasks({String? careerGoalOverride}) async {
+  Future<void> regenerateTodayMicroTasks({
+    String? careerGoalOverride,
+    String? userId,
+  }) async {
     _todayMicroTasks = [];
     _microTasksDate = null;
-    await loadTodayMicroTasks(careerGoalOverride: careerGoalOverride);
+    await loadTodayMicroTasks(
+      careerGoalOverride: careerGoalOverride,
+      forceRefresh: true,
+      userId: userId,
+    );
   }
 
   void updateDailyTaskStatus(String id, DailyMicroTaskStatus status) {
@@ -178,6 +219,11 @@ class RoadmapViewModel extends ChangeNotifier {
     if (index == -1) return;
     _todayMicroTasks[index] = _todayMicroTasks[index].copyWith(status: status);
     notifyListeners();
+
+    // Persist change
+    if (_currentRoadmap != null) {
+      _dbService.saveDailyTasks(_currentRoadmap!.userId, _todayMicroTasks);
+    }
   }
 
   Future<void> toggleTaskCompletion(int weekIndex, int taskIndex, bool value,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/main_viewmodel.dart';
 import '../../viewmodels/skill_viewmodel.dart';
+import '../../viewmodels/roadmap_viewmodel.dart';
 import '../../models/career_role_model.dart';
 import '../../constants/app_theme.dart';
 import '../widgets/shimmer_loading.dart';
@@ -292,9 +293,19 @@ class _CareerGoalScreenState extends State<CareerGoalScreen> {
                     child: GradientButton(
                       text: 'Continue',
                       onPressed: () {
-                        context
-                            .read<MainViewModel>()
-                            .selectCareerGoal(_selectedRole!.title);
+                        final mainVM = context.read<MainViewModel>();
+                        mainVM.selectCareerGoal(_selectedRole!.title);
+
+                        // Update daily tasks for the new role
+                        if (mainVM.currentUser != null) {
+                          context
+                              .read<RoadmapViewModel>()
+                              .regenerateTodayMicroTasks(
+                                careerGoalOverride: _selectedRole!.title,
+                                userId: mainVM.currentUser!.uid,
+                              );
+                        }
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(

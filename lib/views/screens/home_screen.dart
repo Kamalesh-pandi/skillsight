@@ -17,6 +17,8 @@ import 'leaderboard_screen.dart';
 import 'aptitude_screen.dart';
 import 'industry_demand_screen.dart';
 import 'project_generator_screen.dart';
+import 'portfolio_analyzer_screen.dart';
+import 'course_recommender_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -284,6 +286,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   _buildModernActionCard(
                     context,
+                    title: 'Portfolio Code Analyzer',
+                    subtitle: 'AI reviews your GitHub repo code & docs',
+                    icon: Icons.code_rounded,
+                    color: Colors.black87,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const PortfolioAnalyzerScreen())),
+                  ),
+                  _buildModernActionCard(
+                    context,
                     title: 'Strategic Skill Gap Analysis',
                     subtitle: 'Upload resume to identify what\'s missing',
                     icon: Icons.analytics_outlined,
@@ -303,6 +316,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const CareerGoalScreen())),
+                  ),
+                  _buildModernActionCard(
+                    context,
+                    title: 'Course Recommendations',
+                    subtitle: 'Find top free & paid courses for your goal',
+                    icon: Icons.school_rounded,
+                    color: Colors.indigoAccent,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const CourseRecommenderScreen())),
                   ),
                   _buildModernActionCard(
                     context,
@@ -510,36 +534,43 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       if (task.skillTag.isNotEmpty) ...[
                                         const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .chipTheme
-                                                .backgroundColor,
-                                            borderRadius:
-                                                BorderRadius.circular(999),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.tag,
-                                                size: 12,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                task.skillTag,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
+                                        Flexible(
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                  .chipTheme
+                                                  .backgroundColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(999),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.tag,
+                                                  size: 12,
                                                   color:
                                                       AppColors.textSecondary,
                                                 ),
-                                              ),
-                                            ],
+                                                const SizedBox(width: 4),
+                                                Flexible(
+                                                  child: Text(
+                                                    task.skillTag,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: AppColors
+                                                          .textSecondary,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ],

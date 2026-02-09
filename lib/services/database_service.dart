@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/career_role_model.dart';
 import '../models/roadmap_model.dart';
+import '../models/daily_micro_task_model.dart';
 
 class DatabaseService {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
@@ -121,5 +122,50 @@ class DatabaseService {
       return snapshot.count! + 1;
     }, 'getUserRank')
         .then((value) => value ?? 0);
+  }
+
+  // Daily Micro Tasks
+  Future<void> saveDailyTasks(String userId, List<DailyMicroTask> tasks) async {
+    return _handleDbOp<void>(() async {
+      final batch = _db.batch();
+      final collection =
+          _db.collection('users').doc(userId).collection('daily_tasks');
+
+      // Get all existing docs in subcollection to delete them first?
+      // Or just overwrite. To ensure "clean" set for the day, maybe better to loop and delete old ones first?
+      // For simplicity and speed, let's assume valid IDs and overwrite.
+      // But if we generate NEW tasks, strict overwrite might leave old ones.
+      // Let's delete all first.
+
+      final existing = await collection.get();
+      for (var doc in existing.docs) {
+        batch.delete(doc.reference);
+      }
+
+      for (var task in tasks) {
+        final docRef = collection.doc(task.id);
+        batch.set(docRef, task.toMap());
+      }
+
+      await batch.commit();
+    }, 'saveDailyTasks');
+  }
+
+  Future<List<DailyMicroTask>> getDailyTasks(String userId) async {
+    return _handleDbOp<List<DailyMicroTask>>(() async {
+      final snapshot = await _db
+          .collection('users')
+          .doc(userId)
+          .collection('daily_tasks')
+          .orderBy('date') // Optional, if we want order
+          .get();
+
+      if (snapshot.docs.isEmpty) return [];
+
+      return snapshot.docs
+          .map((doc) => DailyMicroTask.fromMap(doc.data()))
+          .toList();
+    }, 'getDailyTasks')
+        .then((value) => value ?? []);
   }
 }

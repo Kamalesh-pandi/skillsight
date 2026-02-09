@@ -3,6 +3,10 @@ import 'package:firebase_vertexai/firebase_vertexai.dart';
 import '../models/industry_trend_model.dart';
 import '../models/project_suggestion_model.dart';
 
+import 'package:http/http.dart' as http;
+import '../models/portfolio_analysis_model.dart';
+import '../models/course_recommendation_model.dart';
+
 class AIService {
   late final GenerativeModel _model;
 
@@ -485,6 +489,182 @@ Return ONLY valid JSON with this structure:
         throw Exception(
             'Firebase ML API Disabled: Please enable the API at https://console.developers.google.com/apis/api/firebaseml.googleapis.com/overview?project=983718372502');
       }
+      rethrow;
+    }
+  }
+
+  Future<List<CourseRecommendationModel>> fetchCourseRecommendations(
+    String careerGoal,
+    List<String> missingSkills, {
+    bool? isPaid,
+    String? maxDuration, // "short" (< 10h), "medium" (10-40h), "long" (40h+)
+  }) async {
+    final skillContext = missingSkills.isNotEmpty
+        ? "Focus regarding these missing skills: ${missingSkills.join(', ')}."
+        : "Focus on general skills for this role.";
+
+    String filters = "";
+    if (isPaid != null) {
+      filters += isPaid
+          ? "Suggest mostly PAID professional certifications."
+          : "Suggest mostly FREE courses.";
+    }
+    if (maxDuration != null) {
+      if (maxDuration == "short")
+        filters += " Prefer SHORT courses (under 10 hours).";
+      if (maxDuration == "medium")
+        filters += " Prefer MEDIUM length courses (10-40 hours).";
+      if (maxDuration == "long")
+        filters += " Prefer LONG types/specializations (40+ hours).";
+    }
+
+    final prompt = '''
+      You are an expert career counselor.
+      Target Role: $careerGoal
+      $skillContext
+      $filters
+
+      Recommend 6-8 high-quality courses or certifications.
+      Include a mix of:
+      1. Popular platforms (Coursera, Udemy, edX, YouTube, Pluralsight).
+      2. Both theoretical and practical/project-based courses.
+      
+      Return ONLY a JSON object with a key "courses" containing a list of course objects.
+
+      JSON Structure for each course:
+      {
+        "id": "unique_string",
+        "title": "Course Title",
+        "platform": "Platform Name",
+        "url": "https://...",
+        "isPaid": boolean,
+        "price": "Free" or "\$XX",
+        "duration": "10 hours" or "4 weeks",
+        "level": "Beginner/Intermediate/Advanced",
+        "rating": 4.5,
+        "skills": ["Skill1", "Skill2"]
+      }
+    ''';
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from Gemini');
+
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+
+        return (data['courses'] as List)
+            .map((item) => CourseRecommendationModel.fromMap(item))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('DEBUG: Gemini Course Recommendation Error: $e');
+      return [];
+    }
+  }
+
+  Future<PortfolioAnalysisModel?> analyzePortfolio(
+      String githubUrl, String careerGoal) async {
+    try {
+      // 1. Basic URL Validation & Parsing
+      final uri = Uri.tryParse(githubUrl);
+      if (uri == null || !uri.host.contains('github.com')) {
+        throw Exception('Invalid GitHub URL');
+      }
+
+      final segments = uri.pathSegments;
+      if (segments.length < 2) {
+        throw Exception('Invalid GitHub Repository URL');
+      }
+
+      final user = segments[0];
+      final repo = segments[1];
+
+      // 2. Fetch README Content (Raw)
+      // Try main, then master
+      String readmeContent = '';
+      final branches = ['main', 'master'];
+
+      for (final branch in branches) {
+        final rawUrl =
+            'https://raw.githubusercontent.com/$user/$repo/$branch/README.md';
+        try {
+          final response = await http.get(Uri.parse(rawUrl));
+          if (response.statusCode == 200) {
+            readmeContent = response.body;
+            break;
+          }
+        } catch (e) {
+          print('Error fetching README from $branch: $e');
+        }
+      }
+
+      if (readmeContent.isEmpty) {
+        // Fallback: If no README, try to just fetch the repo page HTML relative to file list?
+        // For now, if no README, we can't analyze deeply, but we can still ask AI to infer from name/context if possible,
+        // or just return a generic error.
+        // Let's assume for this feature, a README is required for meaningful analysis.
+        throw Exception(
+            'Could not fetch README.md. Please ensure the repository is public and has a README.');
+      }
+
+      // 3. AI Analysis
+      final prompt = '''
+        You are a Senior Tech Recruiter and Code Reviewer.
+        Analyze this GitHub Repository based on its README content.
+        
+        Repository: $user/$repo
+        Target Career Goal: $careerGoal
+        
+        README Content:
+        ${readmeContent.substring(0, readmeContent.length > 20000 ? 20000 : readmeContent.length)} 
+        // Truncate to avoid token limits if huge
+        
+        Evaluate the project on:
+        1. Code Quality (Infer from documentation quality, badges, structure described).
+        2. Project Complexity (Is it a simple calculator or a full-stack app?).
+        3. Job Relevance (How much does this help for getting a job as a $careerGoal?).
+        
+        Return ONLY a JSON object with:
+        - "codeQualityScore": (0-100)
+        - "projectComplexityScore": (0-100)
+        - "jobRelevanceScore": (0-100)
+        - "suggestions": List of 3-5 specific improvements to make this portfolio piece better.
+        - "analysisSummary": A brief 2-sentence summary of the review.
+
+        JSON Structure:
+        {
+          "codeQualityScore": 80,
+          "projectComplexityScore": 75,
+          "jobRelevanceScore": 90,
+          "suggestions": ["Add unit tests", "Include screenshots"],
+          "analysisSummary": "Good start..."
+        }
+      ''';
+
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from AI');
+
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+        return PortfolioAnalysisModel.fromMap(data);
+      }
+      return null;
+    } catch (e) {
+      print('Portfolio Analysis Error: $e');
       rethrow;
     }
   }
