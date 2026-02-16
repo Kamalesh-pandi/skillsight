@@ -7,7 +7,8 @@ import '../../constants/app_theme.dart';
 import '../../models/course_recommendation_model.dart';
 
 class CourseRecommenderScreen extends StatefulWidget {
-  const CourseRecommenderScreen({super.key});
+  final String? targetSkill;
+  const CourseRecommenderScreen({super.key, this.targetSkill});
 
   @override
   State<CourseRecommenderScreen> createState() =>
@@ -30,16 +31,15 @@ class _CourseRecommenderScreenState extends State<CourseRecommenderScreen> {
 
     final careerGoal =
         roadmapVM.currentRoadmap?.careerGoal ?? 'Software Developer';
-    // We can get missing skills from roadmap tasks that are not completed?
-    // Or just generic query. For now, let's use a generic query if specific skills aren't easily available as a list.
-    // Actually, we can assume the user wants recommendations for their current goal.
 
-    // Let's try to extract some context from the roadmap if possible, or just pass empty stats and let AI decide based on goal.
-    final List<String> contextSkills = [];
-    // If we wanted to be specific:
-    // contextSkills.addAll(roadmapVM.currentRoadmap?.weeks.expand((w) => w.tasks).where((t) => !t.isCompleted).map((t) => t.title).take(5) ?? []);
-
-    courseVM.fetchRecommendations(careerGoal, contextSkills);
+    if (widget.targetSkill != null) {
+      // If a specific skill is requested, focus entirely on that
+      courseVM.fetchRecommendations(careerGoal, [widget.targetSkill!]);
+    } else {
+      // Default behavior: Context aware or general
+      final List<String> contextSkills = [];
+      courseVM.fetchRecommendations(careerGoal, contextSkills);
+    }
   }
 
   @override

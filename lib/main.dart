@@ -9,6 +9,7 @@ import 'viewmodels/roadmap_viewmodel.dart';
 import 'viewmodels/chat_viewmodel.dart';
 import 'viewmodels/course_recommender_viewmodel.dart';
 import 'viewmodels/portfolio_viewmodel.dart';
+import 'viewmodels/skill_roadmap_viewmodel.dart';
 import 'views/screens/splash_screen.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
@@ -38,6 +39,7 @@ class SkillSightApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatViewModel()),
         ChangeNotifierProvider(create: (_) => CourseRecommenderViewModel()),
         ChangeNotifierProvider(create: (_) => PortfolioViewModel()),
+        ChangeNotifierProvider(create: (_) => SkillRoadmapViewModel()),
       ],
       child: MaterialApp(
         title: 'SkillSight AI',

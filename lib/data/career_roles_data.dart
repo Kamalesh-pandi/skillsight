@@ -1082,5 +1082,126 @@ List<CareerRoleModel> getInitialCareerRoles() {
           'Relief Sizing'
         ],
         description: 'Ensures chemical processes are safe and compliant.'),
+
+    // =========================================================================
+    // AI & Data Science: Specialized Roles
+    // =========================================================================
+
+    // --- Artificial Intelligence ---
+    CareerRoleModel(
+        id: 'ai_engineer',
+        title: 'AI Engineer',
+        category: 'CSE/IT',
+        // Generic "Smart" icon or Computer icon
+        iconCode: 0xe30a,
+        requiredSkills: [
+          'Python',
+          'TensorFlow',
+          'PyTorch',
+          'Deep Learning',
+          'Neural Networks',
+          'NLP',
+          'Computer Vision',
+          'Mathematics',
+          'Probability & Statistics',
+          'Docker',
+          'Cloud Computing'
+        ],
+        description:
+            'Builds intelligent systems capable of performing tasks that typically require human intelligence.'),
+    CareerRoleModel(
+        id: 'ml_engineer',
+        title: 'Machine Learning Engineer',
+        category: 'CSE/IT',
+        iconCode: 0xe30a,
+        requiredSkills: [
+          'Python',
+          'Scikit-learn',
+          'Supervised Learning',
+          'Unsupervised Learning',
+          'Feature Engineering',
+          'Model Evaluation',
+          'MLOps',
+          'Data Modeling',
+          'Ensemble Methods',
+          'SQL'
+        ],
+        description:
+            'Designs and deploys scalable machine learning models and pipelines.'),
+    CareerRoleModel(
+        id: 'data_scientist',
+        title: 'Data Scientist',
+        category: 'CSE/IT',
+        iconCode: 0xe06c, // Analytics
+        requiredSkills: [
+          'Python',
+          'R',
+          'Pandas',
+          'NumPy',
+          'Matplotlib/Seaborn',
+          'Statistics',
+          'Hypothesis Testing',
+          'SQL',
+          'Data Visualization',
+          'Machine Learning Algorithms',
+          'Big Data Basics'
+        ],
+        description:
+            'Analyzes complex data to derive actionable insights and solve business problems.'),
+    CareerRoleModel(
+        id: 'nlp_specialist',
+        title: 'NLP Specialist',
+        category: 'CSE/IT',
+        iconCode: 0xe0bf, // Chat/Voice
+        requiredSkills: [
+          'Natural Language Processing',
+          'Linguistics',
+          'Tokenization',
+          'Word Embeddings',
+          'BERT',
+          'Transformers',
+          'Spacy',
+          'NLTK',
+          'Generative AI (LLMs)',
+          'Prompt Engineering'
+        ],
+        description:
+            'Focuses on the interaction between computers and human language.'),
+    CareerRoleModel(
+        id: 'cv_engineer',
+        title: 'Computer Vision Engineer',
+        category: 'CSE/IT',
+        iconCode: 0xe412, // Camera
+        requiredSkills: [
+          'OpenCV',
+          'Image Processing',
+          'Convolutional Neural Networks (CNNs)',
+          'Object Detection (YOLO/R-CNN)',
+          'Image Segmentation',
+          'Video Analysis',
+          'PyTorch/TensorFlow',
+          '3D Vision',
+          'Deep Learning'
+        ],
+        description:
+            'Enables computers to interpret and process visual information from the world.'),
+    CareerRoleModel(
+        id: 'data_analyst',
+        title: 'Data Analyst',
+        category: 'CSE/IT',
+        iconCode: 0xe24b, // Chart
+        requiredSkills: [
+          'SQL',
+          'Excel (Advanced)',
+          'Tableau',
+          'PowerBI',
+          'Python Basics',
+          'Data Cleaning',
+          'Exploratory Data Analysis',
+          'Reporting & Dashboards',
+          'Statistics Fundamentals'
+        ],
+        description:
+            'Interprets data and turns it into information offering ways to improve business operations.'),
   ];
 }

@@ -11,7 +11,7 @@ import 'career_goal_screen.dart';
 import 'roadmap_screen.dart';
 import 'feedback_screen.dart';
 import 'login_screen.dart';
-import 'mentor_chat_screen.dart'; // Added Chat Screen
+import 'mentor_chat_screen.dart';
 import '../widgets/gradient_app_bar.dart';
 import 'leaderboard_screen.dart';
 import 'aptitude_screen.dart';
@@ -19,6 +19,9 @@ import 'industry_demand_screen.dart';
 import 'project_generator_screen.dart';
 import 'portfolio_analyzer_screen.dart';
 import 'course_recommender_screen.dart';
+import '../../data/programming_languages_data.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'skill_roadmap_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -82,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Header with Gradient and Shadow
+            // ... (User Header and Stats remain same) ...
             Container(
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(24),
@@ -235,6 +238,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildDailyMicroTasksSection(context, roadmapVM),
             ),
 
+            const SizedBox(height: 24),
+            // --- NEW: Programming Languages Learning Section ---
+            _buildProgrammingLanguagesSection(context),
+            // ------------------------------------------------
+
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -246,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
 
             // Modern Action Cards
+            // ... (rest of the body)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -381,6 +390,118 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // ... (previous helper methods)
+
+  Widget _buildProgrammingLanguagesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Learn Programming',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              // Optional: View All button if needed
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 120,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            scrollDirection: Axis.horizontal,
+            itemCount: allProgrammingLanguages.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final lang = allProgrammingLanguages[index];
+              return _buildLanguageCard(context, lang);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLanguageCard(
+      BuildContext context, ProgrammingLanguageModel lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SkillRoadmapScreen(
+              skillName: lang.name,
+              skillColor: lang.color,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 100,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isDark
+              ? []
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withOpacity(0.1),
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: SvgPicture.network(
+                  lang.logoUrl,
+                  placeholderBuilder: (BuildContext context) => Container(
+                    padding: const EdgeInsets.all(8),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(lang.color),
+                    ),
+                  ),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              lang.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Keep existing methods below...
 
   Widget _buildDailyMicroTasksSection(
       BuildContext context, RoadmapViewModel vm) {
