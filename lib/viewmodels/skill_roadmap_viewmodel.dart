@@ -159,4 +159,27 @@ class SkillRoadmapViewModel extends ChangeNotifier {
         oldTask.copyWith(isCompleted: value);
     notifyListeners();
   }
+
+  Future<void> fetchInterviewQuestions(int weekIndex, int taskIndex) async {
+    if (_currentRoadmap == null) return;
+
+    final task = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+    if (task.interviewQuestions != null &&
+        task.interviewQuestions!.isNotEmpty) {
+      return;
+    }
+
+    try {
+      final questions = await _aiService.generateInterviewQuestions(
+          task.title, _currentRoadmap!.careerGoal);
+
+      final latestTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+      _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] =
+          latestTask.copyWith(interviewQuestions: questions);
+      notifyListeners();
+    } catch (e) {
+      print('DEBUG: SkillRoadmapVM Interview Error: $e');
+      rethrow;
+    }
+  }
 }

@@ -8,6 +8,8 @@ import '../../constants/app_theme.dart';
 import '../widgets/gradient_app_bar.dart';
 import '../widgets/gradient_button.dart';
 import 'quiz_screen.dart';
+import 'interview_prep_screen.dart';
+import '../widgets/shimmer_loading.dart';
 
 class SkillRoadmapScreen extends StatefulWidget {
   final String skillName;
@@ -107,6 +109,13 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
       pinned: true,
       stretch: true,
       backgroundColor: widget.skillColor,
+      centerTitle: true,
+      title: Text('Mastering ${widget.skillName}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          )),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
@@ -120,14 +129,6 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        titlePadding: const EdgeInsets.only(top: 40, bottom: 5),
-        title: Text('Mastering ${widget.skillName}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            )),
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -173,6 +174,7 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
@@ -480,6 +482,10 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
   }
 
   void _showResourceSheet(BuildContext context, int weekIndex, int taskIndex) {
+    // Capture the parent context (SkillRoadmapScreen) to use for navigation/dialogs
+    // after the sheet is popped.
+    final parentContext = context;
+
     // We need to capture the VM *before* showing the bottom sheet
     // and pass it via ChangeNotifierProvider.value because the sheet is a new route/context.
     final vm = Provider.of<SkillRoadmapViewModel>(context, listen: false);
@@ -537,22 +543,195 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
                                   ),
                             ),
                             const SizedBox(height: 24),
-                            _buildResourceSection(context, task),
-                            const SizedBox(height: 32),
-                            GradientButton(
-                              text: 'Take Quiz',
-                              icon: Icons.quiz_outlined,
-                              onPressed: () {
-                                // Close sheet or stack dialog?
-                                // Let's implement quiz dialog on top of sheet for now or navigate.
-                                // RoadmapScreen uses Navigator.push to QuizScreen.
-                                // We need to implement a SkillQuizScreen or reuse QuizScreen if possible,
-                                // but QuizScreen logic might be tied to main RoadmapViewModel.
-                                // Let's use the local dialog approach for V1 as planned, but style it better.
-                                _showQuizDialog(
-                                    context, vm, weekIndex, taskIndex);
-                              },
-                            ),
+                            if (task.bestResources == null) ...[
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 24),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ShimmerLoading.rectangular(
+                                        height: 20, width: 150),
+                                    SizedBox(height: 16),
+                                    ShimmerLoading.rectangular(height: 120),
+                                    SizedBox(height: 24),
+                                    ShimmerLoading.rectangular(height: 50),
+                                    SizedBox(height: 16),
+                                    ShimmerLoading.rectangular(height: 50),
+                                  ],
+                                ),
+                              )
+                            ] else ...[
+                              _buildResourceSection(context, task),
+                              const SizedBox(height: 32),
+                              GradientButton(
+                                text: 'Take Quiz',
+                                icon: Icons.quiz_outlined,
+                                onPressed: () async {
+                                  // Close sheet
+                                  Navigator.pop(context);
+
+                                  // Show loading dialog using PARENT context
+                                  if (!parentContext.mounted) return;
+                                  showDialog(
+                                    context: parentContext,
+                                    barrierDismissible: false,
+                                    builder: (dialogContext) => const Center(
+                                      child: Card(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(24),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CircularProgressIndicator(
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(
+                                                  AppColors.primary,
+                                                ),
+                                              ),
+                                              SizedBox(height: 16),
+                                              Text('Generating quiz...'),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+
+                                  try {
+                                    final questions = await vm.fetchQuizForTask(
+                                        weekIndex, taskIndex);
+
+                                    if (parentContext.mounted) {
+                                      Navigator.pop(
+                                          parentContext); // Close loading
+
+                                      if (questions.isEmpty) {
+                                        ScaffoldMessenger.of(parentContext)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  'Could not generate quiz. Try again.')),
+                                        );
+                                        return;
+                                      }
+
+                                      final result = await Navigator.push<bool>(
+                                        parentContext,
+                                        MaterialPageRoute(
+                                          builder: (_) => QuizScreen(
+                                            topic: vm
+                                                .currentRoadmap!
+                                                .weeks[weekIndex]
+                                                .tasks[taskIndex]
+                                                .title,
+                                            questions: questions,
+                                          ),
+                                        ),
+                                      );
+
+                                      if (parentContext.mounted &&
+                                          result == true) {
+                                        vm.toggleTaskCompletion(
+                                            weekIndex, taskIndex, true);
+                                        ScaffoldMessenger.of(parentContext)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  'Quiz Passed! Task marked as completed.')),
+                                        );
+                                      }
+                                    }
+                                  } catch (e) {
+                                    if (parentContext.mounted) {
+                                      Navigator.pop(
+                                          parentContext); // Close loading
+                                      ScaffoldMessenger.of(parentContext)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                                Text('Error: ${e.toString()}')),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              GradientButton(
+                                text: 'Interview Preparation',
+                                icon: Icons.work_outline,
+                                onPressed: () async {
+                                  // Close sheet using the sheet's context
+                                  Navigator.pop(context);
+
+                                  // Show loading dialog using PARENT context
+                                  if (!parentContext.mounted) return;
+                                  showDialog(
+                                    context: parentContext,
+                                    barrierDismissible: false,
+                                    builder: (dialogContext) => const Center(
+                                      child: Card(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(24),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CircularProgressIndicator(
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(
+                                                  AppColors.primary,
+                                                ),
+                                              ),
+                                              SizedBox(height: 16),
+                                              Text(
+                                                  'Generating interview questions...'),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+
+                                  try {
+                                    await vm
+                                        .fetchInterviewQuestions(
+                                            weekIndex, taskIndex)
+                                        .timeout(const Duration(seconds: 60));
+
+                                    if (parentContext.mounted) {
+                                      Navigator.pop(
+                                          parentContext); // Close loading
+
+                                      final updatedTask = vm.currentRoadmap!
+                                          .weeks[weekIndex].tasks[taskIndex];
+
+                                      Navigator.push(
+                                        parentContext,
+                                        MaterialPageRoute(
+                                          builder: (_) => InterviewPrepScreen(
+                                            task: updatedTask,
+                                            weekIndex: weekIndex,
+                                            taskIndex: taskIndex,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (parentContext.mounted) {
+                                      Navigator.pop(
+                                          parentContext); // Close loading
+                                      ScaffoldMessenger.of(parentContext)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Failed to load questions: ${e.toString()}')),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -572,10 +751,13 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircularProgressIndicator(),
+            ShimmerLoading.rectangular(height: 20, width: 150),
             SizedBox(height: 16),
-            Text('Curating best resources for you...'),
+            ShimmerLoading.rectangular(height: 120),
+            SizedBox(height: 24),
+            ShimmerLoading.rectangular(height: 50),
           ],
         ),
       );
