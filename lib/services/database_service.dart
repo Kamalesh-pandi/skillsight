@@ -70,17 +70,41 @@ class DatabaseService {
 
   Future<RoadmapModel?> getRoadmap(String userId) async {
     return _handleDbOp<RoadmapModel?>(() async {
+      // Fetch recent roadmaps and filter in memory to support legacy ones (null type)
       final snapshot = await _db
           .collection('roadmaps')
           .where('userId', isEqualTo: userId)
           .orderBy('createdAt', descending: true)
+          .limit(10) // Fetch a few to ensure we find the career one
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        // Find first where roadmapType is 'career' OR null (legacy)
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          if (data['roadmapType'] == 'career' || data['roadmapType'] == null) {
+            return RoadmapModel.fromMap(data);
+          }
+        }
+      }
+      return null;
+    }, 'getRoadmap');
+  }
+
+  Future<RoadmapModel?> getSkillRoadmap(String userId, String skillName) async {
+    return _handleDbOp<RoadmapModel?>(() async {
+      final snapshot = await _db
+          .collection('roadmaps')
+          .where('userId', isEqualTo: userId)
+          .where('roadmapType', isEqualTo: 'skill')
+          .where('skillName', isEqualTo: skillName)
           .limit(1)
           .get();
       if (snapshot.docs.isNotEmpty) {
         return RoadmapModel.fromMap(snapshot.docs.first.data());
       }
       return null;
-    }, 'getRoadmap');
+    }, 'getSkillRoadmap');
   }
 
   // Progress Sync

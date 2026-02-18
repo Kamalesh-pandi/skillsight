@@ -117,7 +117,12 @@ class RoadmapModel {
     required this.careerGoal,
     required this.weeks,
     required this.createdAt,
+    this.roadmapType = 'career',
+    this.skillName,
   });
+
+  final String? roadmapType; // 'career' or 'skill'
+  final String? skillName;
 
   Map<String, dynamic> toMap() {
     return {
@@ -126,6 +131,8 @@ class RoadmapModel {
       'careerGoal': careerGoal,
       'weeks': weeks.map((w) => w.toMap()).toList(),
       'createdAt': createdAt.toIso8601String(),
+      'roadmapType': roadmapType,
+      'skillName': skillName,
     };
   }
 
@@ -140,6 +147,8 @@ class RoadmapModel {
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'])
           : DateTime.now(),
+      roadmapType: map['roadmapType'] ?? 'career',
+      skillName: map['skillName'],
     );
   }
 }

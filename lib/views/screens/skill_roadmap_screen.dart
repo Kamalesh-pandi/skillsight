@@ -32,8 +32,11 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      Provider.of<SkillRoadmapViewModel>(context, listen: false)
-          .generateSkillRoadmap(widget.skillName);
+      final mainVM = Provider.of<MainViewModel>(context, listen: false);
+      if (mainVM.currentUser != null) {
+        Provider.of<SkillRoadmapViewModel>(context, listen: false)
+            .generateSkillRoadmap(widget.skillName, mainVM.currentUser!.uid);
+      }
     });
   }
 
@@ -125,7 +128,11 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
         IconButton(
           icon: const Icon(Icons.refresh, color: Colors.white),
           onPressed: () {
-            vm.generateSkillRoadmap(widget.skillName);
+            final mainVM = Provider.of<MainViewModel>(context, listen: false);
+            if (mainVM.currentUser != null) {
+              vm.generateSkillRoadmap(
+                  widget.skillName, mainVM.currentUser!.uid);
+            }
           },
         ),
       ],

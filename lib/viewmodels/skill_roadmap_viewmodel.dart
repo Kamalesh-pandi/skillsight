@@ -32,19 +32,32 @@ class SkillRoadmapViewModel extends ChangeNotifier {
     return totalTasks == 0 ? 0.0 : (completedTasks / totalTasks);
   }
 
-  Future<void> generateSkillRoadmap(String skillName) async {
+  Future<void> generateSkillRoadmap(String skillName, String userId) async {
     // If we already have the roadmap for this skill, don't regenerate
     if (_currentSkill == skillName && _currentRoadmap != null) {
       return;
     }
 
-    _currentSkill = skillName;
     _isLoading = true;
     _errorMessage = null;
-    _currentRoadmap = null; // Reset previous
     notifyListeners();
 
     try {
+      // 1. Try to fetch from DB first
+      final existingRoadmap =
+          await _dbService.getSkillRoadmap(userId, skillName);
+
+      if (existingRoadmap != null) {
+        _currentRoadmap = existingRoadmap;
+        _currentSkill = skillName;
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      _currentSkill = skillName;
+      _currentRoadmap = null; // Reset previous
+
       // mimic a career goal of "Mastering [Skill]" and treating the skill itself as the "missing skill"
       // to force the AI to build a roadmap AROUND that skill.
       final careerGoal = 'Mastering $skillName';
@@ -65,11 +78,16 @@ class SkillRoadmapViewModel extends ChangeNotifier {
 
       _currentRoadmap = RoadmapModel(
         id: const Uuid().v4(),
-        userId: 'temp-user', // Ephemeral
+        userId: userId,
         careerGoal: careerGoal,
         weeks: weeks,
         createdAt: DateTime.now(),
+        roadmapType: 'skill',
+        skillName: skillName,
       );
+
+      // 2. Save to DB
+      await _dbService.saveRoadmap(_currentRoadmap!);
     } catch (e) {
       _errorMessage = 'Failed to generate skill roadmap: $e';
       print('Error generating skill roadmap: $e');
