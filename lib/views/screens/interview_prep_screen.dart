@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../viewmodels/roadmap_viewmodel.dart';
 import '../../models/roadmap_model.dart';
 import '../widgets/gradient_app_bar.dart';
 import '../widgets/gradient_button.dart';
@@ -98,10 +100,14 @@ class _InterviewPrepScreenState extends State<InterviewPrepScreen> {
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
-                    onPageChanged: (page) => setState(() {
-                      _currentPage = page;
-                      _showAnswer = false;
-                    }),
+                    onPageChanged: (page) {
+                      setState(() {
+                        _currentPage = page;
+                        _showAnswer = false;
+                      });
+                      Provider.of<RoadmapViewModel>(context, listen: false)
+                          .clearVoiceState();
+                    },
                     itemCount: total,
                     itemBuilder: (context, index) {
                       final q = questions[index];
@@ -117,6 +123,7 @@ class _InterviewPrepScreenState extends State<InterviewPrepScreen> {
 
   Widget _buildFlashcard(BuildContext context, Map<String, dynamic> data) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final viewModel = Provider.of<RoadmapViewModel>(context);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -134,82 +141,222 @@ class _InterviewPrepScreenState extends State<InterviewPrepScreen> {
             ),
           );
         },
-        child: Container(
+        child: SingleChildScrollView(
           key: ValueKey('card_${_currentPage}_$_showAnswer'),
-          width: double.infinity,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.surface,
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 20,
-                spreadRadius: 5,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.surface,
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.1),
+                width: 1,
               ),
-            ],
-            border: Border.all(
-              color: AppColors.primary.withOpacity(0.1),
-              width: 1,
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _showAnswer ? 'SUGGESTED ANSWER' : 'INTERVIEW QUESTION',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                    fontSize: 12,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _showAnswer ? 'SUGGESTED ANSWER' : 'INTERVIEW QUESTION',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _showAnswer
-                        ? Text(
-                            data['answer'] ?? 'No answer provided.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 18,
-                              height: 1.6,
-                              color:
-                                  isDark ? Colors.grey[300] : Colors.grey[800],
-                            ),
-                          )
-                        : Text(
-                            data['question'] ?? 'No question provided.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              height: 1.4,
-                              color:
-                                  isDark ? Colors.white : AppColors.textPrimary,
-                            ),
-                          ),
+                const SizedBox(height: 16),
+                // Speak Question Button
+                if (!_showAnswer)
+                  IconButton(
+                    icon: Icon(
+                        viewModel.isSpeaking
+                            ? Icons.volume_up
+                            : Icons.volume_up_outlined,
+                        color: AppColors.primary),
+                    onPressed: () {
+                      if (viewModel.isSpeaking) {
+                        viewModel.stopSpeaking();
+                      } else {
+                        viewModel.speakQuestion(
+                            data['question'] ?? 'No question provided.');
+                      }
+                    },
+                    tooltip: 'Read Aloud',
                   ),
+                const SizedBox(height: 16),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _showAnswer
+                      ? Column(
+                          children: [
+                            Text(
+                              data['answer'] ?? 'No answer provided.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                height: 1.6,
+                                color: isDark
+                                    ? Colors.grey[300]
+                                    : Colors.grey[800],
+                              ),
+                            ),
+                            if (viewModel.aiFeedback != null) ...[
+                              const Divider(height: 32),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                      color: Colors.blue.withOpacity(0.3)),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "AI Feedback (Score: ${viewModel.aiFeedback!['score']}/100)",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      viewModel.aiFeedback!['feedback'] ?? '',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : Colors.black87),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            Text(
+                              data['question'] ?? 'No question provided.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                height: 1.4,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            // Voice Answer Section
+                            if (viewModel.isListening)
+                              Column(
+                                children: [
+                                  const Icon(Icons.mic,
+                                      color: Colors.red, size: 48),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "Listening...",
+                                    style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white70
+                                            : Colors.black54),
+                                  ),
+                                  if (viewModel.transcribedAnswer.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 16),
+                                      child: Text(
+                                        '"${viewModel.transcribedAnswer}"',
+                                        style: const TextStyle(
+                                            fontStyle: FontStyle.italic),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  TextButton.icon(
+                                    onPressed: viewModel.stopListening,
+                                    icon: const Icon(Icons.stop,
+                                        color: Colors.red),
+                                    label: const Text("Stop Listening",
+                                        style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              )
+                            else if (viewModel.transcribedAnswer.isNotEmpty)
+                              Column(
+                                children: [
+                                  Text(
+                                    "Your Answer:",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '"${viewModel.transcribedAnswer}"',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white70
+                                            : Colors.black87),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      viewModel.analyzeAnswer(
+                                        data['question'],
+                                        viewModel.currentRoadmap?.careerGoal ??
+                                            "Software Engineer",
+                                      );
+                                      setState(() {
+                                        _showAnswer = true;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.analytics),
+                                    label: const Text("Analyze My Answer"),
+                                  ),
+                                ],
+                              )
+                            else
+                              ElevatedButton.icon(
+                                onPressed: viewModel.startListening,
+                                icon: const Icon(Icons.mic),
+                                label: const Text("Answer with Voice"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 12),
+                                ),
+                              ),
+                          ],
+                        ),
                 ),
-              ),
-              const SizedBox(height: 32),
-              GradientButton(
-                text: _showAnswer ? 'Hide Answer' : 'Show Answer',
-                onPressed: () => setState(() => _showAnswer = !_showAnswer),
-                icon: _showAnswer ? Icons.visibility_off : Icons.visibility,
-              ),
-            ],
+                const SizedBox(height: 32),
+                GradientButton(
+                  text: _showAnswer ? 'Hide Answer' : 'Show Answer',
+                  onPressed: () => setState(() => _showAnswer = !_showAnswer),
+                  icon: _showAnswer ? Icons.visibility_off : Icons.visibility,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,14 +1,100 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../models/roadmap_model.dart';
 import '../models/user_model.dart';
 import '../models/daily_micro_task_model.dart';
 import '../services/database_service.dart';
-import '../services/ai_service.dart'; // Assuming AIService is in this file
-import 'package:uuid/uuid.dart';
+import '../services/ai_service.dart';
+import '../services/voice_service.dart';
 
 class RoadmapViewModel extends ChangeNotifier {
   final DatabaseService _dbService = DatabaseService();
   final AIService _aiService = AIService();
+  final VoiceService _voiceService = VoiceService();
+
+  bool _isSpeaking = false;
+  bool _isListening = false;
+  String _transcribedAnswer = '';
+  Map<String, dynamic>? _aiFeedback;
+
+  bool get isSpeaking => _isSpeaking;
+  bool get isListening => _isListening;
+  String get transcribedAnswer => _transcribedAnswer;
+  Map<String, dynamic>? get aiFeedback => _aiFeedback;
+
+  RoadmapViewModel() {
+    _voiceService.init();
+  }
+
+  Future<void> speakQuestion(String text) async {
+    _isSpeaking = true;
+    notifyListeners();
+    await _voiceService.speak(text);
+    _isSpeaking = false;
+    notifyListeners();
+  }
+
+  Future<void> stopSpeaking() async {
+    await _voiceService.stopSpeaking();
+    _isSpeaking = false;
+    notifyListeners();
+  }
+
+  Future<void> startListening() async {
+    _transcribedAnswer = '';
+    _aiFeedback = null;
+    notifyListeners();
+
+    final available = await _voiceService.startListening(
+      onResult: (text) {
+        _transcribedAnswer = text;
+        notifyListeners();
+      },
+      onStatus: (status) {
+        if (status == 'notListening' || status == 'done') {
+          _isListening = false;
+          notifyListeners();
+        } else if (status == 'listening') {
+          _isListening = true;
+          notifyListeners();
+        }
+      },
+    );
+
+    if (!available) {
+      _isListening = false;
+      _transcribedAnswer = "Microphone not available or permission denied.";
+      notifyListeners();
+    }
+  }
+
+  void clearVoiceState() {
+    stopSpeaking();
+    stopListening();
+    _transcribedAnswer = '';
+    _aiFeedback = null;
+    notifyListeners();
+  }
+
+  Future<void> stopListening() async {
+    await _voiceService.stopListening();
+    _isListening = false;
+    notifyListeners();
+  }
+
+  Future<void> analyzeAnswer(String question, String careerGoal) async {
+    if (_transcribedAnswer.isEmpty) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    _aiFeedback = await _aiService.analyzeInterviewAnswer(
+        question, _transcribedAnswer, careerGoal);
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
   RoadmapModel? _currentRoadmap;
   bool _isLoading = false;
   String? _errorMessage;

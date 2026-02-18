@@ -22,6 +22,7 @@ import 'course_recommender_screen.dart';
 import '../../data/programming_languages_data.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'skill_roadmap_screen.dart';
+import 'future_you_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -325,6 +326,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const CareerGoalScreen())),
+                  ),
+                  _buildModernActionCard(
+                    context,
+                    title: '"Future You" Simulator',
+                    subtitle: 'Visualize your 5-year career trajectory',
+                    icon: Icons.timeline,
+                    color: Colors.cyan,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const FutureYouScreen())),
                   ),
                   _buildModernActionCard(
                     context,

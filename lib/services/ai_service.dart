@@ -6,8 +6,61 @@ import '../models/project_suggestion_model.dart';
 import 'package:http/http.dart' as http;
 import '../models/portfolio_analysis_model.dart';
 import '../models/course_recommendation_model.dart';
+import '../models/career_simulation_model.dart';
 
 class AIService {
+  Future<Map<String, dynamic>> analyzeInterviewAnswer(
+      String question, String userAnswer, String careerGoal) async {
+    final prompt = '''
+      You are an expert technical interviewer. 
+      Question: "$question"
+      Candidate's Answer: "$userAnswer"
+      Target Role: "$careerGoal"
+
+      Evaluate the candidate's answer.
+      
+      Return ONLY a JSON object with:
+      1. "score": An integer score from 0-100 based on correctness, clarity, and depth.
+      2. "feedback": 2-3 sentences of constructive feedback.
+      3. "improvedAnswer": A better, more improved version of the answer.
+
+      JSON Structure:
+      {
+        "score": 85,
+        "feedback": "Good answer, but you missed...",
+        "improvedAnswer": "A better answer would be..."
+      }
+    ''';
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from Gemini');
+
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+        return data;
+      }
+      return {
+        "score": 0,
+        "feedback": "Could not analyze answer.",
+        "improvedAnswer": ""
+      };
+    } catch (e) {
+      print('DEBUG: Gemini Interview Analysis Error: $e');
+      return {
+        "score": 0,
+        "feedback": "Error analyzing answer.",
+        "improvedAnswer": ""
+      };
+    }
+  }
+
   late final GenerativeModel _model;
 
   AIService() {
@@ -666,6 +719,62 @@ Return ONLY valid JSON with this structure:
     } catch (e) {
       print('Portfolio Analysis Error: $e');
       rethrow;
+    }
+  }
+
+  Future<CareerSimulationModel?> simulateCareerPath(
+      String currentRole, List<String> currentSkills, String targetRole) async {
+    final prompt = '''
+      You are an AI Career Simulator depending on real-world data trends.
+      
+      Current Role: $currentRole
+      Current Skills: ${currentSkills.join(', ')}
+      Target Future Role: $targetRole
+      
+      Output a 5-YEAR CAREER PROJECTION.
+      
+      Return ONLY a JSON object with:
+      1. "currentRole": "$currentRole"
+      2. "futureRole": "$targetRole"
+      3. "salaryProjection": A map of year-by-year estimated salary in Indian Rupees (e.g., {"year1": "₹5 LPA", "year3": "₹8.5 LPA", "year5": "₹15 LPA"}).
+      4. "timelineEvents": A list of 5-7 key milestones. Each event has:
+         - "yearOffset": (1-5)
+         - "title": Event title (e.g. "Senior Promotion")
+         - "description": Short description
+         - "type": "milestone" | "learning" | "promotion"
+      5. "recommendedSkills": List of 5 skills to learn to achieve this path.
+      
+      JSON Structure:
+      {
+        "currentRole": "...",
+        "futureRole": "...",
+        "salaryProjection": {"year1": "₹6 LPA", "year3": "₹10 LPA", "year5": "₹15 LPA"},
+        "timelineEvents": [
+          {"yearOffset": 1, "title": "...", "description": "...", "type": "learning"},
+          ...
+        ],
+        "recommendedSkills": ["...", "..."]
+      }
+    ''';
+
+    try {
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text;
+      if (text == null) throw Exception('Empty response from AI');
+
+      String textContent = text.trim();
+      final start = textContent.indexOf('{');
+      final end = textContent.lastIndexOf('}');
+
+      if (start != -1 && end != -1 && end > start) {
+        textContent = textContent.substring(start, end + 1);
+        final data = jsonDecode(textContent);
+        return CareerSimulationModel.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      print('Career Simulation Error: $e');
+      return null;
     }
   }
 }
