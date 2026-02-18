@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/roadmap_model.dart';
 import '../services/ai_service.dart';
+import '../services/database_service.dart';
+import '../models/user_model.dart';
 import 'package:uuid/uuid.dart';
 
 class SkillRoadmapViewModel extends ChangeNotifier {
   final AIService _aiService = AIService();
+  final DatabaseService _dbService = DatabaseService();
   RoadmapModel? _currentRoadmap;
   bool _isLoading = false;
   String? _errorMessage;
@@ -151,13 +154,58 @@ class SkillRoadmapViewModel extends ChangeNotifier {
   }
 
   // Purely local toggle for ephemeral roadmap
-  void toggleTaskCompletion(int weekIndex, int taskIndex, bool value) {
+  Future<void> toggleTaskCompletion(int weekIndex, int taskIndex, bool value,
+      UserModel? currentUser, Function(UserModel)? onUserUpdate) async {
     if (_currentRoadmap == null) return;
 
     final oldTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+    if (oldTask.isCompleted == value) return; // No change
+
     _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] =
         oldTask.copyWith(isCompleted: value);
+
+    // Update User Progress (Points & Streak) if newly completed
+    if (value && currentUser != null && onUserUpdate != null) {
+      await _updateStreak(currentUser, onUserUpdate, 10); // 10 points per task
+    }
+
     notifyListeners();
+  }
+
+  Future<void> _updateStreak(UserModel user, Function(UserModel) onUserUpdate,
+      int earnedPoints) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final lastUpdate = user.lastStreakUpdate != null
+        ? DateTime(user.lastStreakUpdate!.year, user.lastStreakUpdate!.month,
+            user.lastStreakUpdate!.day)
+        : null;
+
+    int newStreak = user.currentStreak;
+    int newPoints = user.points + earnedPoints;
+
+    if (lastUpdate == null) {
+      newStreak = 1;
+    } else if (today.isAfter(lastUpdate)) {
+      final difference = today.difference(lastUpdate).inDays;
+      if (difference == 1) {
+        newStreak += 1;
+      } else if (difference > 1) {
+        newStreak = 1;
+      }
+      // If difference is 0 (same day), streak stays the same
+    }
+
+    final updatedUser = user.copyWith(
+      currentStreak: newStreak,
+      longestStreak:
+          newStreak > user.longestStreak ? newStreak : user.longestStreak,
+      lastStreakUpdate: now,
+      points: newPoints,
+    );
+
+    await _dbService.saveUserProfile(updatedUser);
+    onUserUpdate(updatedUser);
   }
 
   Future<void> fetchInterviewQuestions(int weekIndex, int taskIndex) async {

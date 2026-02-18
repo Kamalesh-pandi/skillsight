@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: 'Portfolio Code Analyzer',
                     subtitle: 'AI reviews your GitHub repo code & docs',
                     icon: Icons.code_rounded,
-                    color: Colors.black87,
+                    color: Colors.green,
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(

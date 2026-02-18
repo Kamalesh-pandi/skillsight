@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/skill_roadmap_viewmodel.dart';
+import '../../viewmodels/main_viewmodel.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../widgets/webview_screen.dart';
 import '../../models/roadmap_model.dart';
@@ -418,8 +419,8 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
                                         // Allow unchecking manually if needed, or we can block this too.
                                         // "checked only when they pass" implies the check act is restricted.
                                         // Let's allow unchecking for now in case of manual reset.
-                                        vm.toggleTaskCompletion(
-                                            weekIndex, taskIndex, false);
+                                        vm.toggleTaskCompletion(weekIndex,
+                                            taskIndex, false, null, null);
                                       }
                                     },
                                     child: Container(
@@ -632,8 +633,16 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
 
                                       if (parentContext.mounted &&
                                           result == true) {
+                                        final mainVM =
+                                            Provider.of<MainViewModel>(
+                                                parentContext,
+                                                listen: false);
                                         vm.toggleTaskCompletion(
-                                            weekIndex, taskIndex, true);
+                                            weekIndex,
+                                            taskIndex,
+                                            true,
+                                            mainVM.currentUser,
+                                            mainVM.updateUser);
                                         ScaffoldMessenger.of(parentContext)
                                             .showSnackBar(
                                           const SnackBar(
@@ -833,70 +842,6 @@ class _SkillRoadmapScreenState extends State<SkillRoadmapScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => WebViewScreen(url: url, title: 'Resource'),
-      ),
-    );
-  }
-
-  void _showQuizDialog(BuildContext context, SkillRoadmapViewModel vm,
-      int weekIndex, int taskIndex) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Knowledge Check'),
-        content: const Text('Ready to test your knowledge on this topic?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Later')),
-          ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context); // Close dialog
-                // Loading snackbar
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Generating quiz...')),
-                );
-
-                final questions =
-                    await vm.fetchQuizForTask(weekIndex, taskIndex);
-
-                if (!context.mounted) return;
-
-                if (questions.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Could not generate quiz. Try again.')),
-                  );
-                  return;
-                }
-
-                // Navigate to QuizScreen
-                final result = await Navigator.push<bool>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => QuizScreen(
-                      topic: vm.currentRoadmap!.weeks[weekIndex]
-                          .tasks[taskIndex].title,
-                      questions: questions,
-                      // Do not pass weekIndex/taskIndex to prevent saving to main roadmap
-                    ),
-                  ),
-                );
-
-                if (context.mounted && result == true) {
-                  // Quiz Passed
-                  vm.toggleTaskCompletion(weekIndex, taskIndex, true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content:
-                            Text('Quiz Passed! Task marked as completed.')),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.skillColor,
-                  foregroundColor: Colors.white),
-              child: const Text('Start Quiz')),
-        ],
       ),
     );
   }

@@ -409,7 +409,7 @@ class RoadmapViewModel extends ChangeNotifier {
         !wasAlreadyCompleted &&
         currentUser != null &&
         onUserUpdate != null) {
-      await _updateStreak(currentUser, onUserUpdate, score);
+      await _updateStreak(currentUser, onUserUpdate, 10);
     }
 
     notifyListeners();
