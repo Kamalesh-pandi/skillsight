@@ -126,6 +126,8 @@ class SkillRoadmapViewModel extends ChangeNotifier {
         bestResources: resources['bestResources'],
         youtubeQuery: resources['youtubeQuery'],
       );
+      // Save resources to DB
+      await _dbService.saveRoadmap(_currentRoadmap!);
       notifyListeners();
     } catch (e) {
       print('Error fetching resources: $e');
@@ -160,6 +162,8 @@ class SkillRoadmapViewModel extends ChangeNotifier {
             latestTask.copyWith(
           quizQuestions: questions,
         );
+        // Save quiz questions to DB
+        await _dbService.saveRoadmap(_currentRoadmap!);
         notifyListeners();
       }
       return questions;
@@ -171,7 +175,39 @@ class SkillRoadmapViewModel extends ChangeNotifier {
     }
   }
 
-  // Purely local toggle for ephemeral roadmap
+  Future<void> saveQuizScore(
+    int weekIndex,
+    int taskIndex,
+    int score,
+    bool passed, {
+    UserModel? currentUser,
+    Function(UserModel)? onUserUpdate,
+  }) async {
+    if (_currentRoadmap == null) return;
+
+    final oldTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
+    final wasAlreadyCompleted = oldTask.isCompleted;
+
+    _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] = oldTask.copyWith(
+      quizScore: score,
+      lastTestedAt: DateTime.now(),
+      isCompleted: wasAlreadyCompleted || passed,
+    );
+
+    // Save quiz score to DB
+    await _dbService.saveRoadmap(_currentRoadmap!);
+
+    if (passed &&
+        !wasAlreadyCompleted &&
+        currentUser != null &&
+        onUserUpdate != null) {
+      await _updateStreak(currentUser, onUserUpdate, 10);
+    }
+
+    notifyListeners();
+  }
+
+  // Persists toggle for ephemeral roadmap
   Future<void> toggleTaskCompletion(int weekIndex, int taskIndex, bool value,
       UserModel? currentUser, Function(UserModel)? onUserUpdate) async {
     if (_currentRoadmap == null) return;
@@ -181,6 +217,9 @@ class SkillRoadmapViewModel extends ChangeNotifier {
 
     _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] =
         oldTask.copyWith(isCompleted: value);
+
+    // Save completion status to DB
+    await _dbService.saveRoadmap(_currentRoadmap!);
 
     // Update User Progress (Points & Streak) if newly completed
     if (value && currentUser != null && onUserUpdate != null) {
@@ -242,6 +281,9 @@ class SkillRoadmapViewModel extends ChangeNotifier {
       final latestTask = _currentRoadmap!.weeks[weekIndex].tasks[taskIndex];
       _currentRoadmap!.weeks[weekIndex].tasks[taskIndex] =
           latestTask.copyWith(interviewQuestions: questions);
+
+      // Save interview questions to DB
+      await _dbService.saveRoadmap(_currentRoadmap!);
       notifyListeners();
     } catch (e) {
       print('DEBUG: SkillRoadmapVM Interview Error: $e');
